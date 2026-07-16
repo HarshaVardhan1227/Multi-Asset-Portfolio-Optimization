@@ -43,17 +43,11 @@ if __name__=="__main__":
             weights_dict = saved_results["optimal_weights"]
             p_return = saved_results["portfolio_return"]
             p_volatility = saved_results["portfolio_volatility"]
-            invest=saved_results["investment_values"]
-            profit=saved_results["expected_profit"]
-            risk=saved_results["expected_risk"]
- 
+            
             m_col1, m_col2,m_col3,m_col4 = st.columns(4)
             m_col1.metric("Optimized Expected Return", f"{round(p_return,2)}")
             m_col2.metric("Optimized Volatility", f"{round(p_volatility,3)}")
-            m_col3.metric("Profit Margin",round(profit,3))
-            m_col4.metric("Risk Margin",round(risk,4))
-            st.bar_chart(invest)
-
+            
             # Format weights into a dataframe to display or chart
             df_weights = pd.DataFrame(list(weights_dict.items()), columns=["Ticker", "Optimal Weight"])
             st.subheader("Optimal Asset Weights")

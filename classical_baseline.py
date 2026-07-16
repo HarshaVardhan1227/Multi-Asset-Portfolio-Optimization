@@ -3,16 +3,9 @@ import numpy as np
 from data import get_financial_data
 import matplotlib.pyplot as plt
 import json
+from quantum_preprocessing import build_portfolio_qubo
+from qiskit_optimization.algorithms import CplexOptimizer
 
-def objective_function(weights, expected_returns, cov_matrix,risk_aversion=0.5):
-    portfolio_return=np.dot(weights,expected_returns)
-
-    portfolio_variance=np.dot(weights.T,np.dot(cov_matrix,weights))
-
-    
-
-
-    return -(portfolio_return - risk_aversion * portfolio_variance)
 
 
 def portfolio_performance(weights, expected_returns, cov_matrix):
@@ -34,9 +27,53 @@ if __name__=='__main__':
 
     initial_weights = np.ones(len(expected_returns)) / len(expected_returns)
 
-    obj_results=objective_function(initial_weights, expected_returns, cov_matrix,risk_aversion=0.5)
+    #obj_results=objective_function(initial_weights, expected_returns, cov_matrix,risk_aversion=0.5)
 
-    liquidity = np.array([10, 8, 7, 10])
+    qubo,qp=build_portfolio_qubo(expected_returns,cov_matrix,risk_aversion=0.5)
+
+    optimizer=CplexOptimizer(qp)
+
+    opt_result=optimizer.solve(qp)
+
+    print(opt_result.x)
+
+    selected_indices=[i for i,val in enumerate(opt_result.x) if val==1]
+    selected_labels=[labels[i] for i in selected_indices]
+    selected_returns=expected_returns[selected_indices]
+    selected_covariance=cov_matrix[selected_indices][:,selected_indices]
+    
+    print(selected_indices)
+    print(selected_returns)
+    print(selected_labels)
+
+
+    num_selected = len(selected_indices)
+
+    weights = np.zeros(len(labels))
+    weights[selected_indices] = 1 / num_selected
+
+    portfolio_return = np.dot(weights, expected_returns)
+    portfolio_variance = weights.T @ cov_matrix @ weights
+    portfolio_volatility = np.sqrt(portfolio_variance)
+    
+    optimal_weights_dict = {
+    label: float(weight)
+    for label, weight in zip(labels, weights)
+    }
+
+    capital=100000
+    investment = weights * capital
+    
+    investment_dict = {
+    label: float(amount)
+    for label, amount in zip(labels, investment)
+    }
+
+    print(portfolio_return)
+    print(portfolio_variance)
+
+    
+    """liquidity = np.array([10, 8, 7, 10])
     constraints = [{
     "type": "eq",
     "fun": lambda w: np.sum(w) - 1
@@ -45,8 +82,9 @@ if __name__=='__main__':
     constraints.append({
         "type":"ineq",
         "fun":lambda w:np.dot(liquidity,w)-20
-    })
+    })"""
 
+    """
     bounds = [(0, 0.50)]*n_assets
 
     optimization_result=minimize(
@@ -82,18 +120,15 @@ if __name__=='__main__':
     transaction_costs=transaction_cost_rate * np.sum(np.abs(np.diff(optimal_weights)))
     print("=="*25)
     print(f"Transaction Costs: {transaction_costs}")
-
+    """
+    
+    
     save_data = {
         "optimal_weights": optimal_weights_dict,
         "portfolio_return": float(portfolio_return),
         "portfolio_volatility": float(portfolio_volatility),
-        "investment_values":total_income,
-        "expected_profit":expected_profit,
-        "expected_risk":expected_risk
+        "investment_values":investment_dict
     }
 
     with open("optimization_results.json", "w") as f:
         json.dump(save_data, f, indent=4)
-
-    print(optimal_weights)
-    print(expected_returns)
