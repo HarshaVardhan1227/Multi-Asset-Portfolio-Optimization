@@ -9,7 +9,7 @@ def objective_function(weights, expected_returns, cov_matrix,risk_aversion=0.5):
 
     portfolio_variance=np.dot(weights.T,np.dot(cov_matrix,weights))
 
-    portfolio_volatility=np.sqrt(portfolio_variance)
+    
 
 
     return -(portfolio_return - risk_aversion * portfolio_variance)
