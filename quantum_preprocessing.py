@@ -18,18 +18,18 @@ def build_portfolio_qubo(expected_returns,covariance_matrix,risk_aversion=0.5):
     quadratic={}
 
     for i in range(num_assets):
-         linear[f"x{i}"]=-(expected_returns[i]-risk_aversion*covariance_matrix[i][i])
+         linear[f"x{i}"]=-(expected_returns[i])
 
     for i in range(num_assets):
-        for j in range(num_assets):            
+        for j in range(i,num_assets):            
                 quadratic[(f"x{i}",f"x{j}")]=risk_aversion*covariance_matrix[i][j]
 
-
+    
     qp.linear_constraint(linear={f"x{i}": 1 for i in range(num_assets)}, sense="==", rhs=2, name="budget_constraint")
     liquidity=[11,8,7,10]
-
-    qp.linear_constraint(linear={f"x{i}": liquidity[i] for i in range(num_assets)},sense=">=",rhs=20,name="liquidity_Constraint")
-    
+    """
+    qp.linear_constraint(linear={f"x{i}": liquidity[i] for i in range(num_assets)},sense=">=",rhs=8,name="liquidity_Constraint")
+    """
 
     diversification_penalty=0.02
 

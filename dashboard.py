@@ -43,6 +43,7 @@ if __name__=="__main__":
             weights_dict = saved_results["optimal_weights"]
             p_return = saved_results["portfolio_return"]
             p_volatility = saved_results["portfolio_volatility"]
+            investment_values=saved_results["investment_values"]
             
             m_col1, m_col2,m_col3,m_col4 = st.columns(4)
             m_col1.metric("Optimized Expected Return", f"{round(p_return,2)}")
@@ -52,6 +53,8 @@ if __name__=="__main__":
             df_weights = pd.DataFrame(list(weights_dict.items()), columns=["Ticker", "Optimal Weight"])
             st.subheader("Optimal Asset Weights")
             st.dataframe(df_weights, use_container_width=True)
+
+            st.bar_chart(investment_values)
         except FileNotFoundError:
             st.error("Optimization file not found! Please run your backend script first to generate optimization_results.json.")
 

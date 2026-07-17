@@ -27,12 +27,10 @@ if __name__=="__main__":
     print("qubo imported")
     operator, offset = qubo.to_ising()
     
-    sampler=StatevectorSampler(default_shots=1024)
-    cobyla=COBYLA(maxiter=100)
+    sampler=StatevectorSampler()
+    cobyla=COBYLA(maxiter=200)
 
     qaoa=QAOA(sampler=sampler,optimizer=cobyla, reps=1)
-
-    ansatz=QAOAAnsatz(cost_operator=operator,reps=2)
     quantum_time=time.time()
     min_eigen=MinimumEigenOptimizer(qaoa)
     end_time=time.time()-quantum_time
@@ -57,7 +55,7 @@ if __name__=="__main__":
         portfolio_return = np.dot(w.T, selected_returns)
         return (q * portfolio_variance) - portfolio_return
 
-    constraints = ({'type': 'eq', 'fun': lambda w: np.sum(w) - 1.0})
+    constraints = ({'type': 'eq', 'fun': lambda w: np.sum(w) - 1})
     bounds = [(0, 0.50) for _ in range(len(selected_indices))]
     initial_guess = np.ones(len(selected_indices)) / len(selected_indices)
 

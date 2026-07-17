@@ -35,6 +35,9 @@ if __name__=='__main__':
 
     opt_result=optimizer.solve(qp)
 
+    print(opt_result.status)
+    print(opt_result.fval)
+
     print(opt_result.x)
 
     selected_indices=[i for i,val in enumerate(opt_result.x) if val==1]
@@ -69,6 +72,7 @@ if __name__=='__main__':
     for label, amount in zip(labels, investment)
     }
 
+    print(investment_dict)
     print(portfolio_return)
     print(portfolio_variance)
 
@@ -132,3 +136,6 @@ if __name__=='__main__':
 
     with open("optimization_results.json", "w") as f:
         json.dump(save_data, f, indent=4)
+
+    print(optimal_weights_dict)
+    
