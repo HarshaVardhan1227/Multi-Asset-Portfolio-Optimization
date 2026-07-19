@@ -16,7 +16,7 @@ warnings.filterwarnings("ignore", category=SparseEfficiencyWarning)
 
 
 if __name__=="__main__":
-    tickers=["UVXY","WEAT","SQQQ","KOLD"]
+    tickers=["UVXY","WEAT","SQQQ","KOLD","SPY","AAPL","USO"]
     start_date="2025-06-01"
     end_date="2026-07-01"
 

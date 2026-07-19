@@ -1,11 +1,14 @@
 {
-    "quantum_portfolio_return": 0.30236,
-    "quantum_portfolio_risk": 0.5506054918559804,
-    "quantum_expected_profit": 30236.0,
+    "quantum_portfolio_return": 0.43143,
+    "quantum_portfolio_risk": 0.22311124394379397,
+    "quantum_expected_profit": 43143.0,
     "optimized_weights": {
         "UVXY": 0.0,
-        "WEAT": 50000.0,
+        "WEAT": 0.0,
         "SQQQ": 0.0,
-        "KOLD": 50000.0
+        "KOLD": 0.0,
+        "SPY": 0.0,
+        "AAPL": 50000.0,
+        "USO": 50000.0
     }
 }

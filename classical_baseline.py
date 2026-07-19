@@ -18,7 +18,7 @@ def portfolio_performance(weights, expected_returns, cov_matrix):
     return portfolio_return,portfolio_volatility,portfolio_variance
 
 if __name__=='__main__':
-    tickers=["UVXY","WEAT","SQQQ","KOLD"]
+    tickers=["UVXY","WEAT","SQQQ","KOLD","SPY","AAPL","USO"]
     start_date="2025-06-01"
     end_date="2026-07-01"
 

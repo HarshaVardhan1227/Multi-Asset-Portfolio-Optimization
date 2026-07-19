@@ -1,0 +1,52 @@
+"""
+        expected_returns_series = pd.Series(expected_returns, index=labels)
+        
+        mapping = {f"Asset {i+1}": ticker for i, ticker in enumerate(tickers)}
+        expected_returns = expected_returns_series.rename(index=mapping)
+
+        df_returns = expected_returns.to_frame(name="Expected Return")
+
+        df_returns.index.name = "Ticker"
+
+        with st.container():
+            st.header("Expected Returns Analysis (Before Optimization)")
+
+            col1,col2=st.columns([1,2],gap='large')
+
+            with col1:
+                st.dataframe(df_returns,width=300)
+            with col2:
+                st.bar_chart(df_returns,width=500,height=300)
+        with st.container():
+            st.header("Classical Baseline Portfolio Objectives")
+            try:
+                with open("optimization_results.json", "r") as f:
+                    saved_results = json.load(f)
+                
+                
+                weights_dict = saved_results["optimal_weights"]
+                p_return = saved_results["portfolio_return"]
+                p_volatility = saved_results["portfolio_volatility"]
+                investment_values=saved_results["investment_values"]
+                
+                m_col1, m_col2,m_col3,m_col4 = st.columns(4)
+                m_col1.metric("Optimized Expected Return", f"{round(p_return,2)}")
+                m_col2.metric("Optimized Volatility", f"{round(p_volatility,3)}")
+                
+                # Format weights into a dataframe to display or chart
+                df_weights = pd.DataFrame(list(weights_dict.items()), columns=["Ticker", "Optimal Weight"])
+                st.subheader("Optimal Asset Weights")
+                st.dataframe(df_weights, use_container_width=True)
+
+                invest_weights=pd.DataFrame(list(investment_values.items()),columns=["Ticker","Investment"])
+                fig = px.pie(
+                invest_weights,
+                names="Ticker",
+                values="Investment",
+                title="Portfolio Allocation"
+                )
+
+                st.plotly_chart(fig, use_container_width=True)
+            except FileNotFoundError:
+                st.error("Optimization file not found! Please run your backend script first to generate optimization_results.json.")
+        """

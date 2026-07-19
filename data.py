@@ -14,12 +14,11 @@ assets = {
 }
 
 def get_financial_data(tickers,start_date,end_date):
-    raw_data=yf.download(tickers, start=start_date, end=end_date)
+    raw_data=yf.download(tickers, start=start_date, end=end_date,auto_adjust=True)
 
-    if isinstance(raw_data.columns, pd.MultiIndex):
-        adj_close_data = raw_data['Close'][tickers]
-    else:
-        adj_close_data = raw_data['Close']
+   
+    adj_close_data = raw_data['Close']
+
 
     adj_close_data = adj_close_data.ffill().bfill()
     
@@ -32,9 +31,9 @@ def get_financial_data(tickers,start_date,end_date):
 
     cov_matrix=(daily_cov*252)
 
-    anonymous_labels=[f"{ticker}" for i,ticker in enumerate((tickers))]
+    anonymous_labels=list(tickers)
 
-    return exp_returns,cov_matrix,anonymous_labels
+    return exp_returns,cov_matrix,anonymous_labels,daily_returns,adj_close_data
 
 
 if __name__=="__main__":
@@ -42,7 +41,7 @@ if __name__=="__main__":
     start_date="2025-06-01"
     end_date="2026-05-01"
 
-    exp_returns,cov_matrix,labels=get_financial_data(tickers,start_date,end_date)
+    exp_returns,cov_matrix,labels,daily_returns,raw_data=get_financial_data(tickers,start_date,end_date)
     
     print(f"Expected Returns: {exp_returns}")
 
