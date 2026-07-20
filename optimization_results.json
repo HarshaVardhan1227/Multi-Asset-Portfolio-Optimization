@@ -1,22 +1,18 @@
 {
     "optimal_weights": {
-        "UVXY": 0.0,
-        "WEAT": 0.0,
-        "SQQQ": 0.0,
-        "KOLD": 0.0,
-        "SPY": 0.0,
-        "AAPL": 0.5,
-        "USO": 0.5
+        "UVXY": 24599.862801273084,
+        "USO": 0.0,
+        "MSFT": 0.0,
+        "KOLD": 75400.13719872692,
+        "SPY": 0.0
     },
-    "portfolio_return": 0.43143,
-    "portfolio_volatility": 0.22311122300407057,
+    "portfolio_return": 0.5242573162121599,
+    "portfolio_volatility": 0.3820330183844452,
     "investment_values": {
-        "UVXY": 0.0,
-        "WEAT": 0.0,
-        "SQQQ": 0.0,
-        "KOLD": 0.0,
-        "SPY": 0.0,
-        "AAPL": 50000.0,
-        "USO": 50000.0
+        "UVXY": 24599.862801273084,
+        "USO": 0.0,
+        "MSFT": 0.0,
+        "KOLD": 75400.13719872692,
+        "SPY": 0.0
     }
 }

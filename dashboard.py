@@ -270,7 +270,6 @@ def classical_baseline():
             values="Investment",
             title="Portfolio Allocation"
             )
-
             st.plotly_chart(fig, use_container_width=True)
         except FileNotFoundError:
             st.error("Optimization file not found! Please run your backend script first to generate optimization_results.json.")
@@ -287,7 +286,8 @@ def quantum_portfolio_objectives():
             portfolio_risk=result["quantum_portfolio_risk"]
             portfolio_profit=result["quantum_expected_profit"]
             portfolio_weights=result["optimized_weights"]
-            col_1,col_2,col_3,col_4,col_5=st.columns(5)
+            transaction_cost=result["total_transaction_cost"]
+            col_1,col_2,col_3,col_4,col_5,col_6=st.columns(6)
             with col_1:
                 col_1.metric("Portfolio Return",round(portfolio_return,3))
             with col_2:
@@ -298,16 +298,17 @@ def quantum_portfolio_objectives():
                 col_4.metric("Expected Risk",round(portfolio_risk*100000,3))
             with col_5:
                 col_5.metric("Expected Day Profit",portfolio_profit//252)
-                
+            with col_6:
+                col_6.metric("Transaction Cost",transaction_cost)
             st.bar_chart(portfolio_weights)
         except:
             print("file not found")
 
 if __name__=="__main__":
-    tickers=["UVXY","WEAT","SQQQ","KOLD"]
+    tickers=["UVXY","USO","MSFT","KOLD","SPY"]
     start_date="2025-06-01"
     end_date="2026-07-01"
-    expected_returns,covariance_matrix,labels,daily_returns,raw_data=get_financial_data(tickers,start_date,end_date)
+    expected_returns,covariance_matrix,labels,daily_returns,raw_data,liquidity_scores,transaction_cost_vector=get_financial_data(tickers,start_date,end_date)
 
     
     with st.sidebar:
