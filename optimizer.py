@@ -16,7 +16,7 @@ warnings.filterwarnings("ignore", category=SparseEfficiencyWarning)
 
 
 if __name__=="__main__":
-    tickers=["UVXY","USO","MSFT","KOLD","SPY"]
+    tickers=["NVDA","AAPL","META","AMZN","MSFT"]
     start_date="2025-06-01"
     end_date="2026-07-01"
 
@@ -31,6 +31,25 @@ if __name__=="__main__":
     cobyla=COBYLA(maxiter=200)
 
     qaoa=QAOA(sampler=sampler,optimizer=cobyla, reps=1)
+
+    print("=" * 60)
+    print("QAOA Problem Statistics")
+    print("=" * 60)
+
+    print(f"Assets                : {len(labels)}")
+    print(f"Binary Variables      : {qubo.get_num_binary_vars()}")
+    print(f"Qubits Required       : {operator.num_qubits}")
+
+    ansatz = QAOAAnsatz(operator, reps=1)
+
+    print(ansatz.draw(output="text"))
+
+
+    print(f"QAOA Layers (reps)    : {ansatz.reps}")
+    print(f"Circuit Depth         : {ansatz.depth()}")
+    print(f"Number of Parameters  : {ansatz.num_parameters}")
+
+    print("=" * 60)
     quantum_time=time.time()
     min_eigen=MinimumEigenOptimizer(qaoa)
     end_time=time.time()-quantum_time

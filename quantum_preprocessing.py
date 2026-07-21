@@ -41,7 +41,7 @@ def build_portfolio_qubo(expected_returns,covariance_matrix,labels,daily_returns
     
 
 if __name__=="__main__":
-    tickers=["UVXY","USO","MSFT","KOLD","SPY"]
+    tickers=["NVDA","AAPL","META","AMZN","MSFT"]
     start_date="2025-06-01"
     end_date="2026-07-01"
 

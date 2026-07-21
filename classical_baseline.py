@@ -18,7 +18,7 @@ def portfolio_performance(weights, expected_returns, cov_matrix):
     return portfolio_return,portfolio_volatility,portfolio_variance
 
 if __name__=='__main__':
-    tickers=["UVXY","USO","MSFT","KOLD","SPY"]
+    tickers=["NVDA","AAPL","META","AMZN","MSFT"]
     start_date="2025-06-01"
     end_date="2026-07-01"
 
@@ -101,6 +101,17 @@ if __name__=='__main__':
     optimized_weights={ticker : invest for ticker,invest in zip(labels,investment_per_asset)}
 
     print("optimized Weights",optimized_weights)
+
+    weight_dict = {
+    ticker: weight
+    for ticker, weight in zip(labels, weights)
+    }
+
+    asset_profit = {
+    ticker: float(profit)
+    for ticker, profit in zip(labels, investment_per_asset * expected_returns)
+    }
+
     portfolio_return = np.dot(weights, expected_returns)
     portfolio_variance = weights.T @ cov_matrix @ weights
     portfolio_volatility = np.sqrt(portfolio_variance)
@@ -112,93 +123,19 @@ if __name__=='__main__':
 
     print("dict",investment_dict)
 
-    """
-    num_selected = len(selected_indices)
-
-    weights = np.zeros(len(labels))
-    weights[selected_indices] = 1 / num_selected
-
-    portfolio_return = np.dot(weights, expected_returns)
-    portfolio_variance = weights.T @ cov_matrix @ weights
-    portfolio_volatility = np.sqrt(portfolio_variance)
-    
-    optimal_weights_dict = {
-    label: float(weight)
-    for label, weight in zip(labels, weights)
-    }
-
-    capital=100000
-    investment = weights * capital
-    
-    investment_dict = {
-    label: float(amount)
-    for label, amount in zip(labels, investment)
-    }
-
-    print(investment_dict)
-    print(portfolio_return)
-    print(portfolio_variance)
-
-    
-    """
-    
-    """liquidity = np.array([10, 8, 7, 10])
-    constraints = [{
-    "type": "eq",
-    "fun": lambda w: np.sum(w) - 1
-    }
-    ]
-    constraints.append({
-        "type":"ineq",
-        "fun":lambda w:np.dot(liquidity,w)-20
-    })"""
-
-    """
-    bounds = [(0, 0.50)]*n_assets
-
-    optimization_result=minimize(
-        objective_function,
-        initial_weights,
-        args=(expected_returns, cov_matrix, 0.5),
-        constraints=constraints,
-        bounds=bounds,
-        method="SLSQP"
-    )
-    
-    print(optimization_result.success)
-    print(optimization_result.message)
-
-    optimal_weights=optimization_result.x   
-
-    portfolio_return, portfolio_volatility,portfolio_variance = portfolio_performance(optimal_weights, expected_returns, cov_matrix)
-    optimal_weights_dict={label: float(weight) for label, weight in zip(labels, optimal_weights)}
-    print(f"Optimal Portfolio Weights: {optimal_weights_dict}")
-    print("=="*25)
-    print(f"Optimal Portfolio Return: {portfolio_return}")
-    print("=="*25)
-    print(f"Optimal Portfolio Volatility: {portfolio_volatility}")
-
-    capital=100000
-    investment_values=optimal_weights*capital
-    print("=="*25)
-    total_income={label : investment for label,investment in zip(labels, investment_values)}
-
-    expected_profit=capital*portfolio_return
-    expected_risk=capital*portfolio_volatility
-    transaction_cost_rate=0.001
-    transaction_costs=transaction_cost_rate * np.sum(np.abs(np.diff(optimal_weights)))
-    print("=="*25)
-    print(f"Transaction Costs: {transaction_costs}")
-    """
     
     
     save_data = {
         "optimal_weights": optimized_weights,
         "portfolio_return":portfolio_return,
         "portfolio_volatility":portfolio_volatility,
-        "investment_values":investment_dict
+        "investment_values":investment_dict,
+        "capital":capital,
+        "weights":weight_dict,
+        "assets_profit":asset_profit
     }
 
     with open("optimization_results.json", "w") as f:
         json.dump(save_data, f, indent=4)
 
+    print(weight_dict)

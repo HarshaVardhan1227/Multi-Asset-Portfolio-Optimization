@@ -1,13 +1,13 @@
 {
-    "quantum_portfolio_return": 0.5256658286358874,
-    "quantum_portfolio_risk": 0.3854041845151139,
-    "quantum_expected_profit": 52566.58286358874,
+    "quantum_portfolio_return": 0.3940311483600967,
+    "quantum_portfolio_risk": 0.24261014130215108,
+    "quantum_expected_profit": 39403.11483600966,
     "optimized_weights": {
-        "UVXY": 25779.719078478374,
-        "USO": 1.2706849461530112e-11,
-        "MSFT": 0.0,
-        "KOLD": 74220.28092152161,
-        "SPY": 0.0
+        "NVDA": 41853.751985505056,
+        "AAPL": 8.326672684688674e-12,
+        "META": 0.0,
+        "AMZN": 0.0,
+        "MSFT": 58146.24801449494
     },
-    "total_transaction_cost": 27699.893049113867
+    "total_transaction_cost": 2456.2320231908852
 }

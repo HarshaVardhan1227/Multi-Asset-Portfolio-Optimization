@@ -241,9 +241,9 @@ def details_of_the_assets(expected_returns,covariance_matrix,labels,daily_return
 
             st.plotly_chart(fig, use_container_width=True)
 
-def classical_baseline():
+def classical_baseline(covariance_matrix,daily_returns):
     with st.container():
-        st.header("Classical Baseline Portfolio Objectives")
+        st.header("Classical Baseline Portfolio Objectives",text_alignment="center")
         try:
             with open("optimization_results.json", "r") as f:
                 saved_results = json.load(f)
@@ -253,27 +253,147 @@ def classical_baseline():
             p_return = saved_results["portfolio_return"]
             p_volatility = saved_results["portfolio_volatility"]
             investment_values=saved_results["investment_values"]
+            capital=saved_results["capital"]
+            weights=saved_results["weights"]
+            asset_profit=saved_results["assets_profit"]
             
             m_col1, m_col2,m_col3,m_col4 = st.columns(4)
-            m_col1.metric("Optimized Expected Return", f"{round(p_return,2)}")
-            m_col2.metric("Optimized Volatility", f"{round(p_volatility,3)}")
+            m_col1.metric("Expected Return", f"{round(p_return,2)}")
+            m_col2.metric("Expected Risk", f"{round(p_volatility,2)}")
             
-            # Format weights into a dataframe to display or chart
-            df_weights = pd.DataFrame(list(weights_dict.items()), columns=["Ticker", "Optimal Weight"])
-            st.subheader("Optimal Asset Weights")
-            st.dataframe(df_weights, use_container_width=True)
+            m_col3.metric("Capital",f"{capital}")
 
-            invest_weights=pd.DataFrame(list(investment_values.items()),columns=["Ticker","Investment"])
-            fig = px.pie(
-            invest_weights,
-            names="Ticker",
-            values="Investment",
-            title="Portfolio Allocation"
-            )
-            st.plotly_chart(fig, use_container_width=True)
+            m_col4.metric("Selected Assets","SPY")
+            # Format weights into a dataframe to display or chart
+
+            with st.container():
+                col1,col2=st.columns(2,gap="large")
+                with col1:
+                    invest_weights=pd.DataFrame(list(investment_values.items()),columns=["Ticker","Investment"])
+                    fig = px.pie(
+                    invest_weights,
+                    names="Ticker",
+                    values="Investment",
+                    title="Portfolio Allocation",
+                    )
+
+                    fig.update_layout(
+                    width=500,
+                    height=400
+                    )
+
+                    st.plotly_chart(fig,use_container_width=True)
+                with col2:
+                    investment_labels = list(investment_values.keys())
+                    investment_amounts = list(investment_values.values())
+                    fig = px.bar(
+                    x=investment_labels,
+                    y=investment_amounts,
+                    text=investment_amounts,
+                    labels={
+                        "x": "Assets",
+                        "y": "Investment (₹)"
+                    },
+                    title="Investment Allocation",
+                    )
+
+                    fig.update_traces(texttemplate="₹%{y:,.0f}", textposition="outside")
+
+                    fig.update_layout(
+                        yaxis_title="Investment (₹)",
+                        xaxis_title="Assets"
+                    )
+                    st.plotly_chart(fig,use_container_width=True)
+
+            with st.container():
+                col1,col2=st.columns(2)
+                weight_labels = list(weights.keys())
+                weight_values = [w * 100 for w in weights.values()]
+                with col1:
+                    fig = px.bar(
+                    x=weight_labels,
+                    y=weight_values,
+                    text=[f"{w:.1f}%" for w in weight_values],
+                    labels={
+                        "x": "Assets",
+                        "y": "Weight (%)"
+                    },
+                    title="Portfolio Weight Distribution"
+                )
+
+                    fig.update_traces(textposition="outside")
+
+                    fig.update_layout(yaxis=dict(categoryorder="total ascending"))
+
+                    st.plotly_chart(fig,use_container_width=True)
+                with col2:
+                    profit_labels = list(asset_profit.keys())
+                    profit_values = list(asset_profit.values())
+
+                    colors = ["green" if p >= 0 else "red" for p in profit_values]
+
+                    fig = px.bar(
+                        x=profit_labels,
+                        y=profit_values,
+                        text=[f"₹{p:,.2f}" for p in profit_values],
+                        title="Expected Profit Per Asset",
+                        labels={
+                            "x": "Assets",
+                            "y": "Expected Profit (₹)"
+                        }
+                    )
+
+                    fig.update_traces(
+                        marker_color=colors,
+                        textposition="outside"
+                    )
+
+                    st.plotly_chart(fig, use_container_width=True)
+            with st.container():
+                col1,col2=st.columns(2)
+                with col1:
+                    cov_df = pd.DataFrame(
+                        covariance_matrix,
+                        index=tickers,
+                        columns=tickers
+                    )
+
+                    fig = px.imshow(
+                        cov_df,
+                        text_auto=".4f",
+                        color_continuous_scale="RdBu_r",
+                        aspect="auto"
+                    )
+
+                    fig.update_layout(
+                        title="Covariance Heatmap",
+                        xaxis_title="Assets",
+                        yaxis_title="Assets",
+                        height=450
+                    )
+
+                    st.plotly_chart(fig, use_container_width=True)
+                with col2:
+                    corr_df = daily_returns.corr()
+                    fig = px.imshow(
+                        corr_df,
+                        text_auto=".2f",
+                        color_continuous_scale="RdBu_r",
+                        aspect="auto"
+                    )
+
+                    fig.update_layout(
+                        title="Correlation Heatmap",
+                        xaxis_title="Assets",
+                        yaxis_title="Assets",
+                        height=450
+                    )
+
+                    st.plotly_chart(fig, use_container_width=True)
+
         except FileNotFoundError:
             st.error("Optimization file not found! Please run your backend script first to generate optimization_results.json.")
-
+        
 def quantum_portfolio_objectives():
     st.header("Quantum Processed Portfolio Objectives")
     with st.container():
@@ -305,7 +425,7 @@ def quantum_portfolio_objectives():
             print("file not found")
 
 if __name__=="__main__":
-    tickers=["UVXY","USO","MSFT","KOLD","SPY"]
+    tickers=["NVDA","AAPL","META","AMZN","MSFT"]
     start_date="2025-06-01"
     end_date="2026-07-01"
     expected_returns,covariance_matrix,labels,daily_returns,raw_data,liquidity_scores,transaction_cost_vector=get_financial_data(tickers,start_date,end_date)
@@ -331,7 +451,7 @@ if __name__=="__main__":
     if st.session_state.page=="Financial Data":
         details_of_the_assets(expected_returns,covariance_matrix,labels,daily_returns,raw_data)
     if st.session_state.page=="Classical Baseline":
-        classical_baseline()
+        classical_baseline(covariance_matrix,daily_returns)
     if st.session_state.page=="Quantum Portfolio":
         quantum_portfolio_objectives()
         
