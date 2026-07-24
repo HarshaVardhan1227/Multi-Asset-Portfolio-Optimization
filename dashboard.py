@@ -5,6 +5,11 @@ import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import numpy as np
+import datetime
+from quantum_preprocessing import build_portfolio_qubo
+from data import get_financial_data
+from classical_baseline import run_classical_baseline
+from optimizer import quantum_optimizer
 
 import json
 st.set_page_config(layout="wide")
@@ -47,7 +52,20 @@ def home_page():
             """)   
         
 
-def details_of_the_assets(expected_returns,covariance_matrix,labels,daily_returns,raw_data):
+def details_of_the_assets():
+    if "portfolio_data" not in st.session_state:
+        st.warning("Please run portfolio optimization first.")
+        return
+
+    data = st.session_state["portfolio_data"]
+
+    expected_returns = data["expected_returns"]
+    covariance_matrix = data["covariance_matrix"]
+    labels = data["labels"]
+    daily_returns = data["daily_returns"]
+    raw_data = data["raw_data"]
+    tickers = data["tickers"]
+
     st.header("Financial Data Analysis",text_alignment="center")
     expected_returns_series = pd.Series(expected_returns, index=labels)
     
@@ -244,7 +262,20 @@ def details_of_the_assets(expected_returns,covariance_matrix,labels,daily_return
 
             st.plotly_chart(fig, use_container_width=True)
 
-def classical_baseline(covariance_matrix,daily_returns):
+def classical_baseline():
+    if "portfolio_data" not in st.session_state:
+            st.warning("Please run portfolio optimization first.")
+            return
+    
+    data = st.session_state["portfolio_data"]
+    
+    expected_returns = data["expected_returns"]
+    covariance_matrix = data["covariance_matrix"]
+    labels = data["labels"]
+    daily_returns = data["daily_returns"]
+    raw_data = data["raw_data"]
+    tickers = data["tickers"]
+
     with st.container():
         st.header("Classical Baseline Portfolio Objectives",text_alignment="center")
         try:
@@ -565,7 +596,20 @@ def classical_baseline(covariance_matrix,daily_returns):
         except FileNotFoundError:
             st.error("Optimization file not found! Please run your backend script first to generate optimization_results.json.")
         
-def quantum_portfolio_objectives(covariance_matrix,daily_returns):
+def quantum_portfolio_objectives():
+    if "portfolio_data" not in st.session_state:
+        st.warning("Please run portfolio optimization first.")
+        return
+    
+    data = st.session_state["portfolio_data"]
+    
+    expected_returns = data["expected_returns"]
+    covariance_matrix = data["covariance_matrix"]
+    labels = data["labels"]
+    daily_returns = data["daily_returns"]
+    raw_data = data["raw_data"]
+    tickers = data["tickers"]
+
     st.header("Quantum Processed Portfolio Objectives",text_alignment="center")
     with st.container():
         try:
@@ -872,7 +916,20 @@ def quantum_portfolio_objectives(covariance_matrix,daily_returns):
         except Exception as e:
             st.exception(e)
 
-def classicalvsquantum(covariance_matrix,daily_returns):
+def classicalvsquantum():
+    if "portfolio_data" not in st.session_state:
+        st.warning("Please run portfolio optimization first.")
+        return
+    
+    data = st.session_state["portfolio_data"]
+    
+    expected_returns = data["expected_returns"]
+    covariance_matrix = data["covariance_matrix"]
+    labels = data["labels"]
+    daily_returns = data["daily_returns"]
+    raw_data = data["raw_data"]
+    tickers = data["tickers"]
+
     with st.container():
         st.header("Comparision of Classical and Quantum Portfolio Optimizations",text_alignment="center")
         col1,col2=st.columns(2)
@@ -1074,13 +1131,44 @@ def classicalvsquantum(covariance_matrix,daily_returns):
 
         st.plotly_chart(fig, use_container_width=True)
 
-if __name__=="__main__":
-    tickers=["NVDA","AAPL","META","AMZN","MSFT","USO","SPY","KOLD"]
-    start_date="2025-06-01"
-    end_date="2026-07-01"
-    expected_returns,covariance_matrix,labels,daily_returns,raw_data,liquidity_scores,transaction_cost_vector=get_financial_data(tickers,start_date,end_date)
+
+def run_portfolio_optimization(config, tickers,start_date, end_date):
+    expected_returns,covariance_matrix,labels,daily_returns,adj_close_data,liquidity_scores,transaction_cost_vector=get_financial_data(tickers,start_date,end_date)
+    st.success("financial Data processed")
+
+    st.session_state["portfolio_data"] = {
+    "expected_returns": expected_returns,
+    "covariance_matrix": covariance_matrix,
+    "labels": labels,
+    "daily_returns": daily_returns,
+    "raw_data": adj_close_data,
+    "liquidity_scores": liquidity_scores,
+    "transaction_cost_vector": transaction_cost_vector,
+    "tickers": tickers
+    }
+
+    qubo, qp = build_portfolio_qubo(
+        expected_returns,
+        covariance_matrix,
+        labels,
+        daily_returns,
+        adj_close_data,
+        liquidity_scores,
+        transaction_cost_vector,
+        config
+    )
+    st.success("✅ QUBO model created")
+
+    run_classical_baseline(qubo,qp,labels,expected_returns,covariance_matrix,transaction_cost_vector,config)
+    st.success("Classical Baseline processed")
+
+    quantum_optimizer(qubo,qp,expected_returns,covariance_matrix,labels,transaction_cost_vector,config)
+    st.success("Quantum Optimization processed")
 
     
+    
+
+if __name__=="__main__":
     with st.sidebar:
         st.sidebar.title("Portfolio Navigation")
 
@@ -1109,6 +1197,24 @@ if __name__=="__main__":
             help="Enter the total amount you wish to invest."
         )
 
+
+        st.sidebar.subheader("Market Data")
+
+        tickers = st.sidebar.multiselect(
+            "Select Assets",
+            ["NVDA", "AAPL", "META", "AMZN", "MSFT", "USO", "SPY", "KOLD"],
+            default=["NVDA", "AAPL", "META", "AMZN", "MSFT"]
+        )
+
+        start_date = st.sidebar.date_input(
+            "Start Date",
+            value=datetime.date(2025, 6, 1)
+        )
+
+        end_date = st.sidebar.date_input(
+            "End Date",
+            value=datetime.date(2026, 7, 1)
+        )
         st.sidebar.subheader("📉 Risk Parameters")
 
         risk_aversion = st.sidebar.slider(
@@ -1131,6 +1237,16 @@ if __name__=="__main__":
             help="Estimated trading cost percentage."
         ) / 100
 
+        st.sidebar.subheader("💧 Liquidity Settings")
+
+        liquidity_weight = st.sidebar.slider(
+            "Liquidity Weight",
+            min_value=0.0,
+            max_value=1.0,
+            value=0.05,
+            step=0.01,
+            help="Controls the importance of liquidity in portfolio optimization."
+        )
         st.sidebar.subheader("📊 Portfolio Constraints")
 
         max_assets = st.sidebar.slider(
@@ -1139,6 +1255,7 @@ if __name__=="__main__":
             max_value=5,
             value=3
         )
+
 
         budget_constraint = st.sidebar.checkbox(
             "Enable Budget Constraint",
@@ -1161,13 +1278,13 @@ if __name__=="__main__":
     if st.session_state.page=="Home":
         home_page()
     if st.session_state.page=="Financial Data":
-        details_of_the_assets(expected_returns,covariance_matrix,labels,daily_returns,raw_data)
+        details_of_the_assets()
     if st.session_state.page=="Classical Baseline":
-        classical_baseline(covariance_matrix,daily_returns)
+        classical_baseline()
     if st.session_state.page=="Quantum Portfolio":
-        quantum_portfolio_objectives(covariance_matrix,daily_returns)
+        quantum_portfolio_objectives()
     if st.session_state.page=="Classical vs Quantum":
-        classicalvsquantum(covariance_matrix,daily_returns)
+        classicalvsquantum()
 
     if run:
         st.success("Portfolio Optimization Started!")
@@ -1177,7 +1294,29 @@ if __name__=="__main__":
         st.write(f"**Investment Capital:** ₹{capital:,.2f}")
         st.write(f"**Risk Aversion:** {risk_aversion}")
         st.write(f"**Transaction Cost:** {transaction_cost:.2%}")
+
+        config = {
+        "capital": capital,
+        "risk_aversion": risk_aversion,
+        "transaction_cost": transaction_cost,
+        "liquidity_weight":liquidity_weight,
+        "max_assets": max_assets,
+        "budget_constraint": budget_constraint,
+        "diversification": diversification,
+        "liquidity_constraint": liquidity_constraint
+        }
+
+        qubo, qp = run_portfolio_optimization(
+        config,
+        tickers,
+        str(start_date),
+        str(end_date)
+        )
+
+        st.write(qp.prettyprint())
+
         
+
         
 
             

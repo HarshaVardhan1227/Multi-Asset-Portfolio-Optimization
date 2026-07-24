@@ -131,3 +131,21 @@ classical Baseline
     print("=="*25)
     print(f"Transaction Costs: {transaction_costs}")
     """
+
+
+if __name__=="__main__":
+    tickers=["NVDA","AAPL","META","AMZN","MSFT","USO","SPY","KOLD"]
+    start_date="2025-06-01"
+    end_date="2026-07-01"
+
+    expected_returns,covariance_matrix,labels,daily_returns,raw_data,liquidity_scores,transaction_cost_vector=get_financial_data(tickers,start_date,end_date)
+
+
+    qubo,qp=build_portfolio_qubo(expected_returns,covariance_matrix,labels,daily_returns,raw_data,liquidity_scores,transaction_cost_vector,config)
+    print(qubo.prettyprint())
+
+    print(qp.prettyprint())
+
+
+    print(liquidity_scores)
+    print(transaction_cost_vector)

@@ -5,7 +5,7 @@ import numpy as np
 
 
 
-def build_portfolio_qubo(expected_returns,covariance_matrix,labels,daily_returns,raw_data,liquidity_scores,transaction_cost_vector,risk_aversion=0.05):
+def build_portfolio_qubo(expected_returns,covariance_matrix,labels,daily_returns,raw_data,liquidity_scores,transaction_cost_vector,config):
     num_assets = len(expected_returns)
 
     qp=QuadraticProgram()
@@ -17,8 +17,11 @@ def build_portfolio_qubo(expected_returns,covariance_matrix,labels,daily_returns
 
     quadratic={}
 
-    liquidity_weight = 0.05   
-    transaction_cost=0.02
+    risk_aversion = config["risk_aversion"]
+    transaction_cost = config["transaction_cost"]
+    liquidity_weight = config["liquidity_weight"]
+    capital = config["capital"]
+    max_assets = config["max_assets"]
 
     for i in range(num_assets):
         linear[f"x{i}"] = (
@@ -33,7 +36,7 @@ def build_portfolio_qubo(expected_returns,covariance_matrix,labels,daily_returns
     qp.linear_constraint(
         linear={f"x{i}": 1 for i in range(num_assets)},
         sense="==",
-        rhs=3,
+        rhs=max_assets,
         name="cardinality"
     )
 
@@ -52,22 +55,5 @@ def build_portfolio_qubo(expected_returns,covariance_matrix,labels,daily_returns
     
     qubo=QuadraticProgramToQubo(penalty=50).convert(qp)
     return qubo,qp
-    
 
-if __name__=="__main__":
-    tickers=["NVDA","AAPL","META","AMZN","MSFT","USO","SPY","KOLD"]
-    start_date="2025-06-01"
-    end_date="2026-07-01"
-
-    expected_returns,covariance_matrix,labels,daily_returns,raw_data,liquidity_scores,transaction_cost_vector=get_financial_data(tickers,start_date,end_date)
-
-
-    qubo,qp=build_portfolio_qubo(expected_returns,covariance_matrix,labels,daily_returns,raw_data,liquidity_scores,transaction_cost_vector,risk_aversion=0.5)
-    print(qubo.prettyprint())
-
-    print(qp.prettyprint())
-
-
-    print(liquidity_scores)
-    print(transaction_cost_vector)
     

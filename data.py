@@ -54,18 +54,3 @@ def get_financial_data(tickers,start_date,end_date):
     return exp_returns,cov_matrix,anonymous_labels,daily_returns,adj_close_data,liquidity_scores,transaction_cost_vector
 
 
-if __name__=="__main__":
-    tickers=["NVDA","AAPL","META","AMZN","MSFT","USO","SPY","KOLD"]
-    start_date="2025-06-01"
-    end_date="2026-05-01"
-
-    exp_returns,cov_matrix,labels,daily_returns,raw_data,liquidity_scores,transaction_cost_vector=get_financial_data(tickers,start_date,end_date)
-    
-    print(f"Expected Returns: {exp_returns}")
-
-    cov_df=pd.DataFrame(cov_matrix, index=labels, columns=labels)
-    print(f"Covariance DataFrame:\n{cov_df.round(6)}")
-
-    print(type(liquidity_scores))
-    print(transaction_cost_vector)
-    print(type(transaction_cost_vector))

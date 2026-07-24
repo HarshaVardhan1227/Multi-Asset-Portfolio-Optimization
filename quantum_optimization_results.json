@@ -1,16 +1,13 @@
 {
-    "quantum_portfolio_return": 0.4640796149866092,
-    "quantum_portfolio_risk": 0.2914450834139307,
-    "quantum_expected_profit": 46407.96149866092,
+    "quantum_portfolio_return": 0.3940311308586405,
+    "quantum_portfolio_risk": 0.2426100730808012,
+    "quantum_expected_profit": 39403.11308586405,
     "optimized_weights": {
-        "NVDA": 2.6020852139652106e-13,
-        "AAPL": 0.0,
-        "META": 0.0,
-        "AMZN": 37527.87455955027,
-        "USO": 0.0,
-        "SPY": 62472.12544044973
+        "NVDA": 41853.791033823785,
+        "MSFT": 0.0,
+        "AAPL": 58146.208966176295
     },
-    "total_transaction_cost": 62892.41971636239,
+    "total_transaction_cost": 17663.352225044287,
     "algo": "QAOA",
     "optimizer": "COBYLA",
     "opt_layers": "1",

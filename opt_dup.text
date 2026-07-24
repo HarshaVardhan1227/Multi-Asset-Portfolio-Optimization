@@ -14,121 +14,139 @@ from qiskit.circuit.library import QAOAAnsatz
 from qiskit.visualization import circuit_drawer
 warnings.filterwarnings("ignore", category=SparseEfficiencyWarning)
 
-def quantum_optimizer(qubo,qp,expected_returns,covariance_matrix,labels,transaction_cost_vector,config):
+
+
+if __name__=="__main__":
+    tickers=["NVDA","AAPL","META","AMZN","USO","SPY"]
+    start_date="2025-06-01"
+    end_date="2026-07-01"
+
+    expected_returns,covariance_matrix,labels,daily_returns,raw_data,liquidity_scores,transaction_cost_vector=get_financial_data(tickers,start_date,end_date)
+    print("data reading is done")
+    data_time=time.time()
+    qubo,qp=build_portfolio_qubo(expected_returns,covariance_matrix,labels,daily_returns,raw_data,liquidity_scores,transaction_cost_vector,risk_aversion=0.5)
+    print("qubo imported")
     operator, offset = qubo.to_ising()
-        
+    
     sampler=StatevectorSampler()
     cobyla=COBYLA(maxiter=200)
-    
+
     qaoa=QAOA(sampler=sampler,optimizer=cobyla, reps=2)
-    
+
     print("=" * 60)
     print("QAOA Problem Statistics")
     print("=" * 60)
-    
+
     print(f"Assets                : {len(labels)}")
     print(f"Binary Variables      : {qubo.get_num_binary_vars()}")
     print(f"Qubits Required       : {operator.num_qubits}")
-    
+
     ansatz = QAOAAnsatz(operator, reps=1)
-    
+
     print(ansatz.draw(output="text"))
-    
-    
+
+
     print(f"QAOA Layers (reps)    : {ansatz.reps}")
     print(f"Circuit Depth         : {ansatz.depth()}")
     print(f"Number of Parameters  : {ansatz.num_parameters}")
-    
+
     print("=" * 60)
-    
+
     quantum_time=time.time()
     min_eigen=MinimumEigenOptimizer(qaoa)
     end_time=time.time()-quantum_time
     result=min_eigen.solve(qp)
     print(end_time)
     print("Optimal Selection vector : ",result.x)
-    
+
     selected_indices=[i for i,val in enumerate(result.x) if val==1]
     selected_labels=[labels[i] for i in selected_indices]
     selected_returns=expected_returns[selected_indices]
     selected_covariance=covariance_matrix[selected_indices][:,selected_indices]
     selected_transaction_cost = transaction_cost_vector[selected_indices]
-    
+
     q=0.5
-    
+
     print(selected_indices)
     print(selected_labels)
     print(selected_returns)
-        
+    
     def portfolio_objective(w):
         portfolio_variance = np.dot(w.T, np.dot(selected_covariance, w))
-    
+
         portfolio_return = np.dot(w.T, selected_returns)
         portfolio_volatility=np.sqrt(portfolio_variance)
-        transaction_cost = np.sum(selected_transaction_cost *np.abs(w - old_weights))
+        transaction_cost = np.sum(
+        selected_transaction_cost *
+        np.abs(w - old_weights)
+        )
         return (q * portfolio_variance) - portfolio_return
-    
+
     old_weights = np.zeros(len(selected_indices))
     constraints = ({'type': 'eq', 'fun': lambda w: np.sum(w) - 1})
     bounds = [(0, 1) for _ in range(len(selected_indices))]
     initial_guess = np.ones(len(selected_indices)) / len(selected_indices)
-    
+
     opt_res = minimize(portfolio_objective, initial_guess, method='SLSQP', bounds=bounds, constraints=constraints)
+
     
-        
     final_weights = np.zeros(len(labels))
     for idx, weight in zip(selected_indices, opt_res.x):
         final_weights[idx] = weight
-    
+
     print(final_weights)
     for ticker, weight in zip(labels, final_weights):
         print(f"Asset: {ticker:<5} | Continuous Weight: {weight:.2%}")
-    
+
     capital=100000
     investment_per_asset = final_weights * capital
-    
+
     print("\nCapital Allocation")
-    
+
     for ticker, invest in zip(labels, investment_per_asset):
         print(f"{ticker:<5} : ₹{invest:.2f}")
-        
+    
     asset_profit = investment_per_asset * expected_returns
-    
+
     final_optimized_weights={ticker : invest for ticker,invest in zip(labels,investment_per_asset)}
-    
+
     print("expected_profit\n")
     exp_profit=0
     for ticker, profit in zip(labels, asset_profit):
         print(f"{ticker:<5} : ₹{profit:.2f}")
         exp_profit+=profit
     print(f"Capital invested :{capital} got profit:{exp_profit} total value: {capital+exp_profit}")
-    
+
     portfolio_return=np.dot(final_weights,expected_returns)
-    
+
     portfolio_variance=np.dot(final_weights.T,np.dot(covariance_matrix,final_weights))
     portfolio_volatility=np.sqrt(portfolio_variance)
-    
-    
+
+
     day_profit=0
     for ticker, profit in zip(labels, asset_profit):
         print(f"{ticker:<5} : ₹{profit:.2f}")
         day_profit+=profit
-        
+    
     old_weights = np.zeros(len(final_weights))
-    
+
     trade_amount = np.abs(final_weights - old_weights)
-    
-    transaction_cost_per_asset = (capital* transaction_cost_vector* trade_amount)
-    
+
+    transaction_cost_per_asset = (
+        capital
+        * transaction_cost_vector
+        * trade_amount
+    )
+
     total_transaction_cost = np.sum(transaction_cost_per_asset)
-    
+
     print("\nTransaction Cost")
-    
+
     for ticker, cost in zip(labels, transaction_cost_per_asset):
         print(f"{ticker:<5}: ₹{cost:.2f}")
-    
+
     print(f"\nTotal Transaction Cost : ₹{total_transaction_cost:.2f}")
-    
+
     opt_layers=str(ansatz.reps)
     circuit_depth=str(ansatz.depth())
     quantum_data={
@@ -142,31 +160,30 @@ def quantum_optimizer(qubo,qp,expected_returns,covariance_matrix,labels,transact
         "opt_layers":opt_layers,
         "cir_depth":circuit_depth
     }
-        
+    
     with open("quantum_optimization_results.json","w") as f:
         json.dump(quantum_data,f,indent=4)
     old_weights=np.zeros(len(final_weights))
     transaction_cost_per_unit=0.001
     transaction_cost=capital * transaction_cost_per_unit * np.sum(np.abs(final_weights - old_weights))
-    
+
     print(final_optimized_weights)
-    
+
     print(final_weights)
     print(portfolio_return)
-    
+
     print("="*100)
     print("Expected Returns")
     for t, r in zip(labels, expected_returns):
         print(t, r)
-    
+
     print("\nCovariance Matrix")
     print(covariance_matrix)
-    
+
     print("\nSelected Assets")
     print(selected_labels)
-    
+
     print("\nQAOA Objective Value")
     print(result.fval)
-    
-    print(total_transaction_cost)
 
+    print(total_transaction_cost)
