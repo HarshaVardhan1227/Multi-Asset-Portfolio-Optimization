@@ -11,12 +11,13 @@ from scipy.sparse import SparseEfficiencyWarning
 import time
 import json
 from qiskit.circuit.library import QAOAAnsatz
+from qiskit.visualization import circuit_drawer
 warnings.filterwarnings("ignore", category=SparseEfficiencyWarning)
 
 
 
 if __name__=="__main__":
-    tickers=["NVDA","AAPL","META","AMZN","MSFT"]
+    tickers=["NVDA","AAPL","META","AMZN","USO","SPY"]
     start_date="2025-06-01"
     end_date="2026-07-01"
 
@@ -30,7 +31,7 @@ if __name__=="__main__":
     sampler=StatevectorSampler()
     cobyla=COBYLA(maxiter=200)
 
-    qaoa=QAOA(sampler=sampler,optimizer=cobyla, reps=1)
+    qaoa=QAOA(sampler=sampler,optimizer=cobyla, reps=2)
 
     print("=" * 60)
     print("QAOA Problem Statistics")
@@ -50,6 +51,7 @@ if __name__=="__main__":
     print(f"Number of Parameters  : {ansatz.num_parameters}")
 
     print("=" * 60)
+
     quantum_time=time.time()
     min_eigen=MinimumEigenOptimizer(qaoa)
     end_time=time.time()-quantum_time
@@ -73,6 +75,7 @@ if __name__=="__main__":
         portfolio_variance = np.dot(w.T, np.dot(selected_covariance, w))
 
         portfolio_return = np.dot(w.T, selected_returns)
+        portfolio_volatility=np.sqrt(portfolio_variance)
         transaction_cost = np.sum(
         selected_transaction_cost *
         np.abs(w - old_weights)
@@ -144,12 +147,18 @@ if __name__=="__main__":
 
     print(f"\nTotal Transaction Cost : ₹{total_transaction_cost:.2f}")
 
+    opt_layers=str(ansatz.reps)
+    circuit_depth=str(ansatz.depth())
     quantum_data={
         "quantum_portfolio_return":portfolio_return,
         "quantum_portfolio_risk":portfolio_volatility,
         "quantum_expected_profit":exp_profit,
         "optimized_weights":final_optimized_weights,
-        "total_transaction_cost":float(total_transaction_cost)
+        "total_transaction_cost":float(total_transaction_cost),
+        "algo":"QAOA",
+        "optimizer":"COBYLA",
+        "opt_layers":opt_layers,
+        "cir_depth":circuit_depth
     }
     
     with open("quantum_optimization_results.json","w") as f:

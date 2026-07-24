@@ -18,7 +18,7 @@ def portfolio_performance(weights, expected_returns, cov_matrix):
     return portfolio_return,portfolio_volatility,portfolio_variance
 
 if __name__=='__main__':
-    tickers=["NVDA","AAPL","META","AMZN","MSFT"]
+    tickers=["NVDA","AAPL","META","AMZN","USO","SPY"]
     start_date="2025-06-01"
     end_date="2026-07-01"
 
@@ -132,7 +132,9 @@ if __name__=='__main__':
         "investment_values":investment_dict,
         "capital":capital,
         "weights":weight_dict,
-        "assets_profit":asset_profit
+        "assets_profit":asset_profit,
+        "bin_opt":"CPLEX",
+        "class_opt":"SLSQP"
     }
 
     with open("optimization_results.json", "w") as f:

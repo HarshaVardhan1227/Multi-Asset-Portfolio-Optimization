@@ -5,7 +5,7 @@ import numpy as np
 
 
 
-def build_portfolio_qubo(expected_returns,covariance_matrix,labels,daily_returns,raw_data,liquidity_scores,transaction_cost_vector,risk_aversion=0.5):
+def build_portfolio_qubo(expected_returns,covariance_matrix,labels,daily_returns,raw_data,liquidity_scores,transaction_cost_vector,risk_aversion=0.05):
     num_assets = len(expected_returns)
 
     qp=QuadraticProgram()
@@ -30,18 +30,32 @@ def build_portfolio_qubo(expected_returns,covariance_matrix,labels,daily_returns
         for j in range(i,num_assets):            
                 quadratic[(f"x{i}",f"x{j}")]=risk_aversion*covariance_matrix[i][j]
 
-    """
-    qp.linear_constraint(linear={f"x{i}": 1 for i in range(num_assets)}, sense="==", rhs=2, name="budget_constraint")
-    """
+    qp.linear_constraint(
+        linear={f"x{i}": 1 for i in range(num_assets)},
+        sense="==",
+        rhs=3,
+        name="cardinality"
+    )
+
+    diversification_penalty = 0.03
+
+    for i in range(num_assets):
+        quadratic[(f"x{i}", f"x{i}")] = (
+            quadratic.get((f"x{i}", f"x{i}"), 0)
+            + diversification_penalty
+        )
+   
+
+
     qp.minimize(linear=linear,quadratic=quadratic)
     
     
-    qubo=QuadraticProgramToQubo(penalty=1000).convert(qp)
+    qubo=QuadraticProgramToQubo(penalty=50).convert(qp)
     return qubo,qp
     
 
 if __name__=="__main__":
-    tickers=["NVDA","AAPL","META","AMZN","MSFT"]
+    tickers=["NVDA","AAPL","META","AMZN","MSFT","USO","SPY","KOLD"]
     start_date="2025-06-01"
     end_date="2026-07-01"
 

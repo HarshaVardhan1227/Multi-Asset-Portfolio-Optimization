@@ -55,7 +55,7 @@ def get_financial_data(tickers,start_date,end_date):
 
 
 if __name__=="__main__":
-    tickers=["NVDA","AAPL","META","AMZN","MSFT"]
+    tickers=["NVDA","AAPL","META","AMZN","MSFT","USO","SPY","KOLD"]
     start_date="2025-06-01"
     end_date="2026-05-01"
 
