@@ -2,6 +2,9 @@ import json
 from openai import OpenAI
 from google import genai
 import streamlit as st
+import os
+
+API_KEY=os.getenv("GCP_API_KEY")
 
 with open("optimization_results.json","r") as f:
     classical_optimization_results=json.load(f)
@@ -9,7 +12,7 @@ with open("optimization_results.json","r") as f:
 with open("quantum_optimization_results.json","r") as f:
     quantum_optimization_results=json.load(f)
 
-client = genai.Client(api_key="AQ.Ab8RN6Ja1IuM_ahte7R6-Jp4Cxr0y2tjsjpLngu3QxNqrettZA")
+client = genai.Client(api_key=API_KEY)
 
 def portfolio_copilot(question,classical_optimization_results,quantum_optmization_results):
     """
