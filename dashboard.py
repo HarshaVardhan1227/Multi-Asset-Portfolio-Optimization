@@ -10,6 +10,9 @@ from quantum_preprocessing import build_portfolio_qubo
 from data import get_financial_data
 from classical_baseline import run_classical_baseline
 from optimizer import quantum_optimizer
+import matplotlib.pyplot as plt
+import streamlit.components.v1 as components
+from copilot import ai_copilot
 
 import json
 st.set_page_config(layout="wide")
@@ -22,8 +25,325 @@ st.markdown(
     unsafe_allow_html=True
 )
 
+def scroll_to_top():
+    components.html(
+        "<script>window.parent.scrollTo({top:0,behavior:'smooth'});</script>",
+        height=0,
+    )
+
+def run_portfolio_optimization(config, tickers,start_date, end_date):
+    expected_returns,covariance_matrix,labels,daily_returns,adj_close_data,liquidity_scores,transaction_cost_vector=get_financial_data(tickers,start_date,end_date)
+    st.success("financial Data processed")
+
+    st.session_state["portfolio_data"] = {
+    "expected_returns": expected_returns,
+    "covariance_matrix": covariance_matrix,
+    "labels": labels,
+    "daily_returns": daily_returns,
+    "raw_data": adj_close_data,
+    "liquidity_scores": liquidity_scores,
+    "transaction_cost_vector": transaction_cost_vector,
+    "tickers": tickers
+    }
+
+    qubo, qp = build_portfolio_qubo(
+        expected_returns,
+        covariance_matrix,
+        labels,
+        daily_returns,
+        adj_close_data,
+        liquidity_scores,
+        transaction_cost_vector,
+        config
+    )
+    st.success("✅ QUBO model created")
+
+    run_classical_baseline(qubo,qp,labels,expected_returns,covariance_matrix,transaction_cost_vector,config)
+    st.success("Classical Baseline processed")
+
+    quantum_optimizer(qubo,qp,expected_returns,covariance_matrix,labels,daily_returns,transaction_cost_vector,config)
+    st.success("Quantum Optimization processed")
+
+    st.success("Classical Vs Quantum")
+
+    st.session_state.messages = []
+
+    st.success("🤖 AI Copilot conversation has been reset.")
+
+    return qubo,qp
+
+def portfolio_configuration():
+    with st.container():
+            st.header("⚙️ Portfolio Configurations",text_alignment="center")
+            with st.container():
+                st.subheader("💰 Investment Capital (₹)")
+                col1,col2=st.columns(2)
+                with col1:
+                    capital = st.number_input(
+                        "Choose your Capital",
+                        min_value=10000,
+                        max_value=100000000,
+                        value=100000,
+                        step=10000,
+                        help="Enter the total amount you wish to invest."
+                    )
+            with st.container():
+                st.subheader("📅 Market Data Period")
+                col1,col2=st.columns(2)
+                with col1:
+                    start_date = st.date_input(
+                    "📅 Start Date",
+                    value=datetime.date(2025, 6, 1),
+                    help="Select the start date for historical market data."
+                    )
+                with col2:
+                    end_date = st.date_input(
+                    "📅 End Date",
+                    value=datetime.date(2026, 7, 1),
+                    help="Select the end date for historical market data."
+                    )
+
+
+            with st.container():
+                st.subheader("Portfolio Parameters")
+                col1,col2=st.columns(2)
+                with col1:
+                    st.subheader("📉 Risk Parameters")
+                    risk_aversion = st.slider(
+                    "📉 Risk Aversion (λ)",
+                    min_value=0.0,
+                    max_value=1.0,
+                    value=0.50,
+                    step=0.05,
+                    help="Higher values prioritize lower portfolio risk."
+                    )
+                    st.subheader("💸 Transaction Settings")
+                    transaction_cost = st.slider(
+                        "Transaction Cost (%)",
+                        min_value=0.0,
+                        max_value=2.0,
+                        value=0.10,
+                        step=0.05,
+                        help="Estimated trading cost percentage."
+                    ) / 100
+                with col2:
+                    st.subheader("💧 Liquidity Settings")
+                    liquidity_weight = st.slider(
+                        "Liquidity Weight",
+                        min_value=0.0,
+                        max_value=1.0,
+                        value=0.05,
+                        step=0.01,
+                        help="Controls the importance of liquidity in portfolio optimization."
+                    )
+            with st.container():
+                st.subheader("📊 Asset Selection")
+
+                sector_assets = {
+                        "Technology": ["NVDA", "MSFT", "AAPL", "META", "GOOGL"],
+                        "Healthcare": ["LLY", "JNJ", "UNH", "PFE", "MRK"],
+                        "Financial": ["JPM", "BAC", "GS", "MS", "WFC"],
+                        "Energy & Commodities": ["XOM", "CVX", "USO", "KOLD", "GLD"],
+                        "ETFs & Index Funds": ["SPY", "QQQ", "DIA", "IWM", "VTI"]
+                    }
+
+                selected_assets = []
+
+                with st.container():
+
+                    st.write("Select up to **5 assets** from different sectors.")
+
+                    with st.container():
+                        col1,col2=st.columns(2)
+                        with col1:
+                            st.markdown("### 💻 Technology")
+                            tech = st.multiselect(
+                                    "Technology Assets",
+                                    sector_assets["Technology"],
+                                    key="tech"
+                                )
+                            selected_assets.extend(tech)
+                        with col2:
+                            st.markdown("### % of Capital Invest in 💻 Technology")
+                            tech_pct = st.slider(
+                                "💻 Technology",
+                                min_value=0,
+                                max_value=30,
+                                value=15,
+                                key="tech_pct"
+                            )
+                    with st.container():
+                        col1,col2=st.columns(2)
+                        with col1:
+                            st.markdown("### 🏦 Financial")
+                            financial = st.multiselect(
+                                    "Financial Assets",
+                                    sector_assets["Financial"],
+                                    key="financial"
+                                )
+                            selected_assets.extend(financial)
+                        with col2:
+                            st.markdown("### % of Capital Invest in 🏦 Financial")
+                            financial_pct = st.slider(
+                                "🏦 Financial",
+                                min_value=0,
+                                max_value=20,
+                                value=5,
+                                key="financial_pct"
+                            )
+                    with st.container():
+                        col1,col2=st.columns(2)
+                        with col1:
+                            st.markdown("### 📈 ETFs")
+                            etfs = st.multiselect(
+                                "ETF Assets",
+                                sector_assets["ETFs & Index Funds"],
+                                key="etfs"
+                            )
+                            selected_assets.extend(etfs)
+                        with col2:
+                            st.markdown("### % of Capital Invest in 📈 ETFs")
+                            etf_pct = st.slider(
+                                "📈 ETFs & Index Funds",
+                                min_value=0,
+                                max_value=15,
+                                value=6,
+                                key="etf_pct"
+                            )
+
+                    with st.container():
+                        col1,col2=st.columns(2)
+
+                        with col1:
+                            st.markdown("### 🏥 Healthcare")
+                            healthcare = st.multiselect(
+                                    "Healthcare Assets",
+                                    sector_assets["Healthcare"],
+                                    key="healthcare"
+                                )
+                            selected_assets.extend(healthcare)
+                        with col2:
+                            st.markdown("### % of Capital Invest in 🏥 Healthcare")
+                            healthcare_pct = st.slider(
+                                "🏥 Healthcare",
+                                min_value=0,
+                                max_value=20,
+                                value=10,
+                                key="healthcare_pct"
+                            )
+                    with st.container():
+                        col1,col2=st.columns(2)
+                        with col1:
+                            st.markdown("### ⚡ Energy & Commodities")
+                            energy = st.multiselect(
+                                    "Energy Assets",
+                                    sector_assets["Energy & Commodities"],
+                                    key="energy"
+                                )
+                            selected_assets.extend(energy)
+                        with col2:
+                            st.markdown("### % of Capital Invest in ⚡ Energy & Commodities")
+                            energy_pct = st.slider(
+                                "⚡ Energy & Commodities",
+                                min_value=0,
+                                max_value=15,
+                                value=6,
+                                key="energy_pct"
+                            )
+
+                    if len(selected_assets) > 5:
+                        st.error("⚠️ You can select a maximum of 5 assets.")
+                        selected_assets = selected_assets[:5]
+
+                    tickers = selected_assets
+
+                    total_sector_pct = (
+                            tech_pct +
+                            financial_pct +
+                            healthcare_pct +
+                            energy_pct +
+                            etf_pct
+                    )
+
+                    if (
+                        tech_pct < 0 or
+                        financial_pct < 0 or
+                        healthcare_pct < 0 or
+                        energy_pct < 0 or
+                        etf_pct < 0
+                    ):
+                        st.error("Sector exposure cannot be negative.")
+                        st.stop()
+            with st.container():
+                st.subheader("Portfolio Constraints")
+                col1, col2 = st.columns(2)
+                with col1:
+                    max_assets = st.slider(
+                        "Maximum Number of Assets",
+                        min_value=1,
+                        max_value=5,
+                        value=3,
+                        step=1,
+                        help="Maximum number of assets that can be included in the optimized portfolio."
+                    )
+
+                    budget_constraint = st.checkbox(
+                            "💰 Enable Budget Constraint",
+                            value=True,
+                            help="Ensures the total investment does not exceed the available capital."
+                        )
+
+                    diversification = st.checkbox(
+                            "📊 Enable Diversification Penalty",
+                            value=True,
+                            help="Encourages investment across multiple assets."
+                        )
+
+                    liquidity_constraint = st.checkbox(
+                            "💧 Enable Liquidity Constraint",
+                            value=True,
+                            help="Prefers assets with higher market liquidity."
+                        )
+            with st.container():
+                run = st.button(
+                    "🚀 Run Portfolio Optimization",
+                    use_container_width=True,
+                    type="primary"
+                )
+
+                if run:
+                    st.success("Portfolio Optimization Started!")
+                
+                    config = {
+                        "capital": capital,
+                        "risk_aversion": risk_aversion,
+                        "transaction_cost": transaction_cost,
+                        "liquidity_weight":liquidity_weight,
+                        "max_assets": max_assets,
+                        "budget_constraint": budget_constraint,
+                        "diversification": diversification,
+                        "liquidity_constraint": liquidity_constraint,
+                        "sector_limits": {
+                            "tech_sector_percentage": tech_pct,
+                            "finance_sector_percentage": financial_pct,
+                            "health_sector_percentage": healthcare_pct,
+                            "energy_sector_percentage": energy_pct,
+                            "etf_sector_percentage": etf_pct
+                        }
+                    }
+                
+                    st.session_state["config"] = config
+                    qubo, qp = run_portfolio_optimization(
+                        config,
+                        tickers,
+                        str(start_date),
+                        str(end_date)
+                    )
+                
+                    st.write(qp.prettyprint())
 
 def home_page():
+    scroll_to_top()
     with st.container():
         st.title("Multi Asset Portfolio Optimization",text_alignment="center")
         
@@ -49,10 +369,10 @@ def home_page():
             portfolio construction, optimization results, and performance evaluation,
             making it easier to understand how quantum computing can assist in solving
             real-world financial optimization problems.
-            """)   
-        
+            """)
 
 def details_of_the_assets():
+    scroll_to_top()
     if "portfolio_data" not in st.session_state:
         st.warning("Please run portfolio optimization first.")
         return
@@ -263,6 +583,7 @@ def details_of_the_assets():
             st.plotly_chart(fig, use_container_width=True)
 
 def classical_baseline():
+    scroll_to_top()
     if "portfolio_data" not in st.session_state:
             st.warning("Please run portfolio optimization first.")
             return
@@ -277,7 +598,7 @@ def classical_baseline():
     tickers = data["tickers"]
 
     with st.container():
-        st.header("Classical Baseline Portfolio Objectives",text_alignment="center")
+        st.header("📈 Classical Baseline Portfolio Objectives",text_alignment="center")
         try:
             with open("optimization_results.json", "r") as f:
                 saved_results = json.load(f)
@@ -292,14 +613,17 @@ def classical_baseline():
             asset_profit=saved_results["assets_profit"]
             bin_opt=saved_results["bin_opt"]
             class_opt=saved_results["class_opt"]
-            
-            m_col1, m_col2,m_col3,m_col4 = st.columns(4)
+
+            expected_profit=capital*p_return
+            m_col1, m_col2,m_col3,m_col4,m_col5 = st.columns(5)
             m_col1.metric("Expected Return", f"{round(p_return,2)}")
             m_col2.metric("Expected Risk", f"{round(p_volatility,2)}")
             
             m_col3.metric("Capital",f"{capital}")
 
             m_col4.metric("Selected Assets","SPY")
+
+            m_col5.metric("Expected Profit",round(expected_profit))
             # Format weights into a dataframe to display or chart
 
             with st.container():
@@ -597,6 +921,7 @@ def classical_baseline():
             st.error("Optimization file not found! Please run your backend script first to generate optimization_results.json.")
         
 def quantum_portfolio_objectives():
+    scroll_to_top()
     if "portfolio_data" not in st.session_state:
         st.warning("Please run portfolio optimization first.")
         return
@@ -610,25 +935,28 @@ def quantum_portfolio_objectives():
     raw_data = data["raw_data"]
     tickers = data["tickers"]
 
-    st.header("Quantum Processed Portfolio Objectives",text_alignment="center")
+    st.header("🚀 Quantum Processed Portfolio Objectives",text_alignment="center")
     with st.container():
         try:
             with open("quantum_optimization_results.json","r") as f:
                 result=json.load(f)
                
-            capital=100000
+            
             portfolio_return=result["quantum_portfolio_return"]
             portfolio_risk=result["quantum_portfolio_risk"]
             portfolio_profit=result["quantum_expected_profit"]
             portfolio_weights_dict=result["optimized_weights"]
+            capital=result["capital"]
             transaction_cost=result["total_transaction_cost"]
             algorithm=result["algo"]
             optimizer=result["optimizer"]
             circuit_layers=result["opt_layers"]
+            investment_per_asset=result["investment_per_asset"]
             circuit_depth=result["cir_depth"]
             risk_free_rate = 0.05
             sharpe_ratio = (portfolio_return - risk_free_rate) / portfolio_risk
             expected_profit = capital * portfolio_return
+            asset_profit=result["asset_profit_per_asset"]
 
             
             col_1,col_2,col_3,col_4=st.columns(4)
@@ -913,10 +1241,108 @@ def quantum_portfolio_objectives():
                     )
 
                     st.plotly_chart(fig,use_container_width=True)
+            with st.container():
+                col1,col2=st.columns(2)
+                with col1:
+                    investment_values=[investment_per_asset[label] for label in labels]
+                    df = pd.DataFrame({
+                        "Asset": labels,
+                        "Investment": investment_values
+                    })
+
+                    fig = px.bar(
+                        df,
+                        x="Asset",
+                        y="Investment",
+                        color="Investment",
+                        text_auto=".2s",
+                        title="Capital Allocation Across Assets"
+                    )
+
+                    fig.update_layout(
+                        xaxis_title="Assets",
+                        yaxis_title="Investment (₹)",
+                        template="plotly_white"
+                    )
+
+                    st.plotly_chart(fig, use_container_width=True)
+                with col2:
+                    profit_values = [asset_profit[label] for label in labels]
+                    df = pd.DataFrame({
+                        "Asset": labels,
+                        "Profit": profit_values
+                    })
+
+                    colors = np.where(df["Profit"] >= 0, "Profit", "Loss")
+
+                    df["Type"] = colors
+
+                    fig = px.bar(
+                        df,
+                        x="Asset",
+                        y="Profit",
+                        color="Type",
+                        text_auto=".2f",
+                        title="Expected Profit per Asset"
+                    )
+
+                    fig.update_layout(
+                        xaxis_title="Assets",
+                        yaxis_title="Expected Profit (₹)",
+                        template="plotly_white"
+                    )
+
+                    st.plotly_chart(fig, use_container_width=True)
+            with st.container():
+                asset_risk = np.sqrt(np.diag(covariance_matrix))
+                df = pd.DataFrame({
+                        "Asset": labels,
+                        "Risk": asset_risk,
+                        "Return": expected_returns
+                })
+
+                fig = px.scatter(
+                        df,
+                        x="Risk",
+                        y="Return",
+                        text="Asset",
+                        size=np.repeat(18, len(labels)),
+                        title="Risk vs Return of Individual Assets"
+                    )
+
+                fig.update_traces(textposition="top center")
+
+                fig.add_trace(
+                        go.Scatter(
+                            x=[portfolio_risk],
+                            y=[portfolio_return],
+                            mode="markers+text",
+                            text=["Quantum Portfolio"],
+                            marker=dict(size=20, color="red"),
+                            name="Optimized Portfolio"
+                        )
+                    )
+
+                fig.update_layout(
+                        xaxis_title="Risk (Volatility)",
+                        yaxis_title="Expected Return",
+                        template="plotly_white"
+                    )
+
+                st.plotly_chart(fig, use_container_width=True)
+            with st.container():
+                col1,col2=st.columns(2)
+                with col1:
+                    st.subheader("QAOA Circuit Diagram")
+                    st.image(
+                    "qaoa_circuit.png",
+                    use_container_width=True
+                     )
         except Exception as e:
             st.exception(e)
 
 def classicalvsquantum():
+    scroll_to_top()
     if "portfolio_data" not in st.session_state:
         st.warning("Please run portfolio optimization first.")
         return
@@ -931,7 +1357,7 @@ def classicalvsquantum():
     tickers = data["tickers"]
 
     with st.container():
-        st.header("Comparision of Classical and Quantum Portfolio Optimizations",text_alignment="center")
+        st.header("🤝 Comparision of Classical and Quantum Portfolio Optimizations",text_alignment="center")
         col1,col2=st.columns(2)
         with col1:
             st.subheader("Classical Objectives")
@@ -970,7 +1396,7 @@ def classicalvsquantum():
                         height=400
                     )
                     
-                    st.plotly_chart(fig,use_container_width=True)                        
+                    st.plotly_chart(fig,use_container_width=True,key="classical_pie")                        
             except Exception as e:
                 st.exception(e)
         with col2:
@@ -979,12 +1405,13 @@ def classicalvsquantum():
                 with open("quantum_optimization_results.json","r") as f:
                     result=json.load(f)
                                    
-                capital=100000
+                
                 portfolio_return=result["quantum_portfolio_return"]
                 portfolio_risk=result["quantum_portfolio_risk"]
                 portfolio_profit=result["quantum_expected_profit"]
                 portfolio_weights_dict=result["optimized_weights"]
                 transaction_cost=result["total_transaction_cost"]
+                capital=result["capital"]
                 algorithm=result["algo"]
                 optimizer=result["optimizer"]
                 circuit_layers=result["opt_layers"]
@@ -1014,14 +1441,14 @@ def classicalvsquantum():
                     height=400
                     )
 
-                    st.plotly_chart(fig,use_container_width=True)
+                    st.plotly_chart(fig,use_container_width=True,key="quantum_pie")
             except Exception as e:
                 st.exception(e)       
-        # Sharpe Ratios
+
         classical_sharpe = (p_return - risk_free_rate) / p_volatility
         quantum_sharpe = (portfolio_return - risk_free_rate) / portfolio_risk
 
-        # Expected Profits
+
         classical_profit = capital * p_return
         quantum_profit = capital * portfolio_return
 
@@ -1064,8 +1491,6 @@ def classicalvsquantum():
 
         st.plotly_chart(fig, use_container_width=True)
 
-    
-
         classical_df = pd.DataFrame(
         list(investment_values.items()),
         columns=["Ticker", "Classical"]
@@ -1075,7 +1500,6 @@ def classicalvsquantum():
         list(portfolio_weights_dict.items()),
         columns=["Ticker", "Quantum"]
         )
-
     
         allocation_df = pd.merge(
             classical_df,
@@ -1101,6 +1525,7 @@ def classicalvsquantum():
             )
 
         st.plotly_chart(fig, use_container_width=True)
+
     with st.container():
         scatter_df = pd.DataFrame({
             "Method": ["Classical", "Quantum"],
@@ -1132,41 +1557,10 @@ def classicalvsquantum():
         st.plotly_chart(fig, use_container_width=True)
 
 
-def run_portfolio_optimization(config, tickers,start_date, end_date):
-    expected_returns,covariance_matrix,labels,daily_returns,adj_close_data,liquidity_scores,transaction_cost_vector=get_financial_data(tickers,start_date,end_date)
-    st.success("financial Data processed")
-
-    st.session_state["portfolio_data"] = {
-    "expected_returns": expected_returns,
-    "covariance_matrix": covariance_matrix,
-    "labels": labels,
-    "daily_returns": daily_returns,
-    "raw_data": adj_close_data,
-    "liquidity_scores": liquidity_scores,
-    "transaction_cost_vector": transaction_cost_vector,
-    "tickers": tickers
-    }
-
-    qubo, qp = build_portfolio_qubo(
-        expected_returns,
-        covariance_matrix,
-        labels,
-        daily_returns,
-        adj_close_data,
-        liquidity_scores,
-        transaction_cost_vector,
-        config
-    )
-    st.success("✅ QUBO model created")
-
-    run_classical_baseline(qubo,qp,labels,expected_returns,covariance_matrix,transaction_cost_vector,config)
-    st.success("Classical Baseline processed")
-
-    quantum_optimizer(qubo,qp,expected_returns,covariance_matrix,labels,transaction_cost_vector,config)
-    st.success("Quantum Optimization processed")
-
-    
-    
+def aicopilot():
+    st.header("Welcome to MAPO Co-pilot",text_alignment="center")
+    st.subheader("Ask Me Anything!....",text_alignment="center")
+    ai_copilot()
 
 if __name__=="__main__":
     with st.sidebar:
@@ -1176,107 +1570,25 @@ if __name__=="__main__":
             st.session_state.page = "Home"
         if st.sidebar.button("🏠 Home"):
             st.session_state.page="Home"
+        if st.sidebar.button("⚙️ Portfolio Configuration"):
+            st.session_state.page="Portfolio Configuration"
         if st.sidebar.button("📊 Financial Data"):
             st.session_state.page="Financial Data"
         if st.sidebar.button("💼 Classical Baseline"):
             st.session_state.page="Classical Baseline"
         if st.sidebar.button("⚛️ Quantum Portfolio"):
             st.session_state.page="Quantum Portfolio"
-        if st.sidebar.button("Classical Vs Quantum"):
+        if st.sidebar.button("⚖️ Classical Vs Quantum"):
             st.session_state.page="Classical vs Quantum"
-
-        st.sidebar.title("⚙️ Portfolio Configuration")
-        st.sidebar.subheader("💰 Investment Settings")
-
-        capital = st.sidebar.number_input(
-            "Investment Capital (₹)",
-            min_value=10000,
-            max_value=100000000,
-            value=100000,
-            step=10000,
-            help="Enter the total amount you wish to invest."
-        )
+        if st.sidebar.button("🤖 AI Copilot"):
+            st.session_state.page = "AI Copilot"
 
 
-        st.sidebar.subheader("Market Data")
 
-        tickers = st.sidebar.multiselect(
-            "Select Assets",
-            ["NVDA", "AAPL", "META", "AMZN", "MSFT", "USO", "SPY", "KOLD"],
-            default=["NVDA", "AAPL", "META", "AMZN", "MSFT"]
-        )
-
-        start_date = st.sidebar.date_input(
-            "Start Date",
-            value=datetime.date(2025, 6, 1)
-        )
-
-        end_date = st.sidebar.date_input(
-            "End Date",
-            value=datetime.date(2026, 7, 1)
-        )
-        st.sidebar.subheader("📉 Risk Parameters")
-
-        risk_aversion = st.sidebar.slider(
-            "Risk Aversion (λ)",
-            min_value=0.0,
-            max_value=1.0,
-            value=0.50,
-            step=0.05,
-            help="Higher values prioritize lower portfolio risk."
-        )
-
-        st.sidebar.subheader("💸 Transaction Settings")
-
-        transaction_cost = st.sidebar.slider(
-            "Transaction Cost (%)",
-            min_value=0.0,
-            max_value=2.0,
-            value=0.10,
-            step=0.05,
-            help="Estimated trading cost percentage."
-        ) / 100
-
-        st.sidebar.subheader("💧 Liquidity Settings")
-
-        liquidity_weight = st.sidebar.slider(
-            "Liquidity Weight",
-            min_value=0.0,
-            max_value=1.0,
-            value=0.05,
-            step=0.01,
-            help="Controls the importance of liquidity in portfolio optimization."
-        )
-        st.sidebar.subheader("📊 Portfolio Constraints")
-
-        max_assets = st.sidebar.slider(
-            "Maximum Assets",
-            min_value=2,
-            max_value=5,
-            value=3
-        )
-
-
-        budget_constraint = st.sidebar.checkbox(
-            "Enable Budget Constraint",
-            value=True
-        )
-
-        diversification = st.sidebar.checkbox(
-            "Enable Diversification Penalty",
-            value=True
-        )
-
-        liquidity_constraint = st.sidebar.checkbox(
-            "Enable Liquidity Constraint",
-            value=True
-        )
-        run = st.sidebar.button(
-            "🚀 Run Portfolio Optimization",
-            use_container_width=True
-        )
     if st.session_state.page=="Home":
         home_page()
+    if st.session_state.page=="Portfolio Configuration":
+        portfolio_configuration()
     if st.session_state.page=="Financial Data":
         details_of_the_assets()
     if st.session_state.page=="Classical Baseline":
@@ -1285,35 +1597,10 @@ if __name__=="__main__":
         quantum_portfolio_objectives()
     if st.session_state.page=="Classical vs Quantum":
         classicalvsquantum()
+    if st.session_state.page=="AI Copilot":
+        aicopilot()
 
-    if run:
-        st.success("Portfolio Optimization Started!")
-
-        st.write("### Selected Parameters")
-
-        st.write(f"**Investment Capital:** ₹{capital:,.2f}")
-        st.write(f"**Risk Aversion:** {risk_aversion}")
-        st.write(f"**Transaction Cost:** {transaction_cost:.2%}")
-
-        config = {
-        "capital": capital,
-        "risk_aversion": risk_aversion,
-        "transaction_cost": transaction_cost,
-        "liquidity_weight":liquidity_weight,
-        "max_assets": max_assets,
-        "budget_constraint": budget_constraint,
-        "diversification": diversification,
-        "liquidity_constraint": liquidity_constraint
-        }
-
-        qubo, qp = run_portfolio_optimization(
-        config,
-        tickers,
-        str(start_date),
-        str(end_date)
-        )
-
-        st.write(qp.prettyprint())
+    
 
         
 

@@ -1,26 +1,34 @@
 {
     "optimal_weights": {
-        "NVDA": 36236.24030050929,
-        "MSFT": 0.0,
-        "AAPL": 63763.75969949077
+        "NVDA": 0.0,
+        "MSFT": 66666.66666666667,
+        "AAPL": 0.0,
+        "META": 0.0,
+        "GOOGL": 33333.333333333336
     },
-    "portfolio_return": 0.396548917097312,
-    "portfolio_volatility": 0.2536588127399365,
+    "portfolio_return": 0.6355633333333334,
+    "portfolio_volatility": 0.2565618850595646,
     "investment_values": {
-        "NVDA": 36236.24030050929,
-        "MSFT": 0.0,
-        "AAPL": 63763.75969949077
+        "NVDA": 0.0,
+        "MSFT": 66666.66666666667,
+        "AAPL": 0.0,
+        "META": 0.0,
+        "GOOGL": 33333.333333333336
     },
     "capital": 100000,
     "weights": {
-        "NVDA": 0.3623624030050929,
-        "MSFT": 0.0,
-        "AAPL": 0.6376375969949077
+        "NVDA": 0.0,
+        "MSFT": 0.6666666666666667,
+        "AAPL": 0.0,
+        "META": 0.0,
+        "GOOGL": 0.33333333333333337
     },
     "assets_profit": {
-        "NVDA": 13333.849343378406,
-        "MSFT": -0.0,
-        "AAPL": 26321.042366352794
+        "NVDA": 0.0,
+        "MSFT": 49796.66666666667,
+        "AAPL": -0.0,
+        "META": -0.0,
+        "GOOGL": 13759.666666666668
     },
     "bin_opt": "CPLEX",
     "class_opt": "SLSQP"

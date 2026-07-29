@@ -21,6 +21,9 @@ def build_portfolio_qubo(expected_returns,covariance_matrix,labels,daily_returns
     transaction_cost = config["transaction_cost"]
     liquidity_weight = config["liquidity_weight"]
     capital = config["capital"]
+    budget_constraint=config["budget_constraint"]
+    liquidity_constraint=config["liquidity_constraint"]
+    diversification_constraint=config["diversification"]
     max_assets = config["max_assets"]
 
     for i in range(num_assets):
@@ -40,13 +43,19 @@ def build_portfolio_qubo(expected_returns,covariance_matrix,labels,daily_returns
         name="cardinality"
     )
 
-    diversification_penalty = 0.03
+
+    std_dev = np.sqrt(np.diag(covariance_matrix))
+    correlation_matrix = covariance_matrix / np.outer(std_dev, std_dev)
+    correlation_matrix = np.nan_to_num(correlation_matrix)
+
+    lambda_div = 0.05
 
     for i in range(num_assets):
-        quadratic[(f"x{i}", f"x{i}")] = (
-            quadratic.get((f"x{i}", f"x{i}"), 0)
-            + diversification_penalty
-        )
+        for j in range(i + 1, num_assets):
+            quadratic[(f"x{i}", f"x{j}")] = (
+                quadratic.get((f"x{i}", f"x{j}"), 0)
+                + lambda_div * correlation_matrix[i][j]
+            )
    
 
 
