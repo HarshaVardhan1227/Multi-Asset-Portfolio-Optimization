@@ -27,4 +27,30 @@ Multi Asset Portfolio Optimization
 | notebook | Jupyter Notebook |
 | ipykernel | Jupyter kernel support |
 
+### Install Required Packages
+
+```bash
+pip install numpy
+pip install pandas
+pip install scipy
+pip install matplotlib
+pip install plotly
+pip install yfinance
+pip install pandas-datareader
+pip install streamlit
+pip install qiskit
+pip install qiskit-optimization
+pip install qiskit-algorithms
+pip install qiskit-ibm-runtime
+pip install cplex
+pip install openai
+pip install google-genai
+pip install python-dotenv
+pip install openpyxl
+pip install tqdm
+pip install networkx
+pip install notebook
+pip install ipykernel
+```
+
 ---
