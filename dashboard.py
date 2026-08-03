@@ -13,6 +13,9 @@ from optimizer import quantum_optimizer
 import matplotlib.pyplot as plt
 import streamlit.components.v1 as components
 from copilot import ai_copilot
+from progress_popup import show_progress
+from streamlit_javascript import st_javascript
+
 
 import json
 st.set_page_config(layout="wide")
@@ -25,19 +28,64 @@ st.markdown(
     unsafe_allow_html=True
 )
 
+st.markdown("""
+<style>
+
+/* KPI Card */
+.kpi-card{
+    border-radius:16px;
+    padding:18px;
+    margin:8px 0;
+    box-shadow:0 4px 12px rgba(0,0,0,0.15);
+    text-align:center;
+    color:white;
+    transition:0.3s;
+}
+
+.kpi-card:hover{
+    transform:translateY(-3px);
+    box-shadow:0 8px 18px rgba(0,0,0,0.25);
+}
+
+.kpi-title{
+    font-size:16px;
+    font-weight:600;
+    opacity:0.9;
+}
+
+.kpi-value{
+    font-size:32px;
+    font-weight:700;
+    margin-top:8px;
+}
+
+</style>
+""", unsafe_allow_html=True)
+
+def kpi_card(title, value, color):
+    st.markdown(
+        f"""
+        <div class="kpi-card" style="background-color:{color};">
+            <div class="kpi-title">{title}</div>
+            <div class="kpi-value">{value}</div>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
 def scroll_to_top():
-    components.html(
-        "<script>window.parent.scrollTo({top:0,behavior:'smooth'});</script>",
-        height=0,
+    st_javascript(
+        "window.parent.scrollTo({top:0, behavior:'smooth'});"
     )
 
 def run_portfolio_optimization(config, tickers,start_date, end_date):
-    expected_returns,covariance_matrix,labels,daily_returns,adj_close_data,liquidity_scores,transaction_cost_vector=get_financial_data(tickers,start_date,end_date)
-    st.success("financial Data processed")
+    expected_returns,covariance_matrix,corr_matrix,labels,daily_returns,adj_close_data,liquidity_scores,transaction_cost_vector=get_financial_data(tickers,start_date,end_date)
 
+    
     st.session_state["portfolio_data"] = {
     "expected_returns": expected_returns,
     "covariance_matrix": covariance_matrix,
+    "corr_matrix": corr_matrix,
     "labels": labels,
     "daily_returns": daily_returns,
     "raw_data": adj_close_data,
@@ -56,19 +104,13 @@ def run_portfolio_optimization(config, tickers,start_date, end_date):
         transaction_cost_vector,
         config
     )
-    st.success("✅ QUBO model created")
+    
 
-    run_classical_baseline(qubo,qp,labels,expected_returns,covariance_matrix,transaction_cost_vector,config)
-    st.success("Classical Baseline processed")
-
-    quantum_optimizer(qubo,qp,expected_returns,covariance_matrix,labels,daily_returns,transaction_cost_vector,config)
-    st.success("Quantum Optimization processed")
-
-    st.success("Classical Vs Quantum")
-
+    run_classical_baseline(qubo,qp,labels,expected_returns,covariance_matrix,corr_matrix,transaction_cost_vector,liquidity_scores,config)
+    
+    quantum_optimizer(qubo,qp,expected_returns,covariance_matrix,liquidity_scores,labels,daily_returns,transaction_cost_vector,corr_matrix,config)
+    st.success("Portfolio Optimization done")
     st.session_state.messages = []
-
-    st.success("🤖 AI Copilot conversation has been reset.")
 
     return qubo,qp
 
@@ -322,6 +364,7 @@ def portfolio_configuration():
                         "max_assets": max_assets,
                         "budget_constraint": budget_constraint,
                         "diversification": diversification,
+                        "diversification_penalty": 0.05,
                         "liquidity_constraint": liquidity_constraint,
                         "sector_limits": {
                             "tech_sector_percentage": tech_pct,
@@ -339,8 +382,6 @@ def portfolio_configuration():
                         str(start_date),
                         str(end_date)
                     )
-                
-                    st.write(qp.prettyprint())
 
 def home_page():
     scroll_to_top()
@@ -386,7 +427,7 @@ def details_of_the_assets():
     raw_data = data["raw_data"]
     tickers = data["tickers"]
 
-    st.header("Financial Data Analysis",text_alignment="center")
+    st.header("Market Data Analysis",text_alignment="center")
     expected_returns_series = pd.Series(expected_returns, index=labels)
     
     mapping = {f"Asset {i+1}": ticker for i, ticker in enumerate(tickers)}
@@ -397,7 +438,7 @@ def details_of_the_assets():
     df_returns.index.name = "Ticker"
 
     with st.container():
-        st.write("Expected Returns Analysis (Before Optimization)")
+        st.write("Expected Asset Returns")
 
         col1,col2=st.columns([1,2],gap='large')
 
@@ -430,7 +471,7 @@ def details_of_the_assets():
 
             col1,col2=st.columns([1,2],gap='large')
             with col1:
-                st.write("Heat Map of Covariance Matrix")
+                st.write("Asset Covariance Matrix")
                 cov_df = pd.DataFrame(
                 covariance_matrix,
                 index=tickers,
@@ -452,7 +493,7 @@ def details_of_the_assets():
 
                 st.plotly_chart(fig, use_container_width=True)
             with col2:
-                st.write("Correlation Matrix")
+                st.write("Asset Correlation Matrix")
 
                 corr_df = daily_returns.corr()
 
@@ -471,7 +512,7 @@ def details_of_the_assets():
 
                 st.plotly_chart(fig, use_container_width=True)
         with st.container():
-            st.write("Historical Price Trend")
+            st.write("Historical Asset Prices")
 
             fig = px.line(
                 raw_data,
@@ -491,7 +532,7 @@ def details_of_the_assets():
 
             st.plotly_chart(fig, use_container_width=True)
         with st.container():
-            st.subheader("Efficient Frontier")
+            st.subheader("Efficient Frontier Analysis")
 
             annual_return = daily_returns.mean() * 252
 
@@ -535,7 +576,7 @@ def details_of_the_assets():
 
             st.plotly_chart(fig, use_container_width=True)
         with st.container():
-            st.subheader("Cumulative Returns")
+            st.subheader("Cumulative Asset Returns")
 
             cumulative_returns = (1 + daily_returns).cumprod()
 
@@ -554,7 +595,7 @@ def details_of_the_assets():
 
             st.plotly_chart(fig, use_container_width=True)
         with st.container():
-            st.subheader("Risk vs Return")
+            st.subheader("Annualized Risk vs Return of Individual Assets")
 
             annual_return = daily_returns.mean() * 252
             annual_risk = daily_returns.std() * np.sqrt(252)
@@ -598,7 +639,7 @@ def classical_baseline():
     tickers = data["tickers"]
 
     with st.container():
-        st.header("📈 Classical Baseline Portfolio Objectives",text_alignment="center")
+        st.header("📈 Classical Portfolio Optimization",text_alignment="center")
         try:
             with open("optimization_results.json", "r") as f:
                 saved_results = json.load(f)
@@ -613,29 +654,76 @@ def classical_baseline():
             asset_profit=saved_results["assets_profit"]
             bin_opt=saved_results["bin_opt"]
             class_opt=saved_results["class_opt"]
+            selected_assets=saved_results["opt_selected_labels"]
+            invested_capital=saved_results["invested_capital"]
+            cash_remaining=saved_results["cash_remaining"]
+            binary_objective_breakdown=saved_results["binary_breakdown"]
+            continuous_breakdown=saved_results["continuous_breakdown"]
+
+
+
+            weight_series = (
+                pd.Series(weights)
+                .reindex(daily_returns.columns, fill_value=0)
+            )
+
+            portfolio_daily_returns = (
+                daily_returns.mul(weight_series, axis=1)
+            ).sum(axis=1)
+
+            confidence = 0.95
+
+            classical_var = -np.percentile(portfolio_daily_returns,
+                                        (1-confidence)*100)
+
+            classical_tail = portfolio_daily_returns[portfolio_daily_returns <= -classical_var]
+
+            classical_cvar = -classical_tail.mean()
 
             expected_profit=capital*p_return
-            m_col1, m_col2,m_col3,m_col4,m_col5 = st.columns(5)
-            m_col1.metric("Expected Return", f"{round(p_return,2)}")
-            m_col2.metric("Expected Risk", f"{round(p_volatility,2)}")
+            m_col1, m_col2,m_col3,m_col4 = st.columns(4)
+            with m_col1:
+                kpi_card("Expected Return", f"{p_return:.2f}", "#2563EB")
+            with m_col2:
+                kpi_card("Expected Risk", f"{round(p_volatility,2)}", "#DC2626")
+            with m_col3:
+                kpi_card("Capital", f"{capital}","#0891B2")
+            with m_col4:
+                kpi_card("Selected Assets", ",".join(selected_assets), "#7C3AED")
             
-            m_col3.metric("Capital",f"{capital}")
-
-            m_col4.metric("Selected Assets","SPY")
-
-            m_col5.metric("Expected Profit",round(expected_profit))
-            # Format weights into a dataframe to display or chart
+            
 
             with st.container():
-                col1,col2,col3,col4=st.columns(4,gap="small")
+                col1,col2,col3,col4=st.columns(4)
 
                 with col1:
-                    
-                    col1.metric("Binary Optimizer",bin_opt)
-                    
+                    kpi_card("Binary Optimizer", bin_opt, "#6366F1")
                 with col2:
-                    col2.metric("Classical Optimizer",class_opt)
-
+                    kpi_card("Classical Optimizer", class_opt, "#8B5CF6")
+                with col3:
+                    kpi_card("Invested Capital", round(invested_capital,5), "#16A34A")
+                with col4:
+                    kpi_card("Remaining Cash", round(cash_remaining,5), "#F59E0B")
+            with st.container():
+                col1,col2,col3,col4=st.columns(4)
+                with col1:
+                    kpi_card("Var (95%)", round(classical_var,3), "#EA580C")
+                with col2:
+                    kpi_card("CVaR (95%)", round(classical_cvar,3),"#DC2626")
+                with col3:
+                    kpi_card("Expected Profit", round(expected_profit), "#16A34A")
+            with st.container():
+                col1,col2=st.columns(2)
+                with col1:
+                    st.subheader("Binary Objective Breakdown")
+                    binary_breakdown_df = pd.DataFrame.from_dict(binary_objective_breakdown, orient='index', columns=['Value'])
+                    binary_breakdown_df.index.name = 'Component'
+                    st.dataframe(binary_breakdown_df)
+                with col2:
+                    st.subheader("Continuous Objective Breakdown")
+                    continuous_breakdown_df = pd.DataFrame.from_dict(continuous_breakdown, orient='index', columns=['Value'])
+                    continuous_breakdown_df.index.name = 'Component'
+                    st.dataframe(continuous_breakdown_df)
             with st.container():
                 col1,col2=st.columns(2,gap="large")
                 with col1:
@@ -763,43 +851,51 @@ def classical_baseline():
             with st.container():
                 col1,col2=st.columns(2)
                 with col1:
-                    num_portfolios = 5000
-                    results = np.zeros((3, num_portfolios))
+                    st.subheader("Sharpe Ratio")
+                    risk_free_rate = 0.05   # 5%
 
-                    for i in range(num_portfolios):
-                        w = np.random.random(len(tickers))
-                        w /= np.sum(w)
+                    # Optimized portfolio weights
+                    weight_series = pd.Series(weights).reindex(tickers, fill_value=0)
+                    weights_array = weight_series.values
 
-                        portfolio_return = np.sum(expected_returns * w)
-                        portfolio_risk = np.sqrt(np.dot(w.T, np.dot(covariance_matrix, w)))
-                        sharpe = portfolio_return / portfolio_risk
-
-                        results[0, i] = portfolio_risk
-                        results[1, i] = portfolio_return
-                        results[2, i] = sharpe
-
-                    frontier_df = pd.DataFrame({
-                        "Risk": results[0],
-                        "Return": results[1],
-                        "Sharpe": results[2]
-                    })
-
-                    fig = px.scatter(
-                        frontier_df,
-                        x="Risk",
-                        y="Return",
-                        color="Sharpe",
-                        title="Efficient Frontier",
-                        color_continuous_scale="Viridis"
+                    portfolio_return = np.dot(expected_returns, weights_array)
+                    portfolio_risk = np.sqrt(
+                        np.dot(weights_array.T, np.dot(covariance_matrix, weights_array))
                     )
 
-                    fig.add_scatter(
-                        x=[p_volatility],
-                        y=[p_return],
-                        mode="markers",
-                        marker=dict(size=15, color="red", symbol="star"),
-                        name="Optimal Portfolio"
-                    )
+                    sharpe_ratio = (portfolio_return - risk_free_rate) / portfolio_risk
+
+                    if sharpe_ratio < 0:
+                        color = "red"
+                        status = "Poor"
+                    elif sharpe_ratio < 1:
+                        color = "orange"
+                        status = "Average"
+                    elif sharpe_ratio < 2:
+                        color = "green"
+                        status = "Good"
+                    else:
+                        color = "darkgreen"
+                        status = "Excellent"
+
+                    fig = go.Figure(go.Indicator(
+                        mode="number+gauge+delta",
+                        value=sharpe_ratio,
+                        delta={"reference": 1},
+                        title={"text": f"Sharpe Ratio<br><span style='font-size:16px'>{status}</span>"},
+                        gauge={
+                            "axis": {"range": [-1, 3]},
+                            "bar": {"color": color},
+                            "steps": [
+                                    {"range": [-1, 0], "color": "#ff4d4d"},
+                                    {"range": [0, 1], "color": "#ffd54f"},
+                                    {"range": [1, 2], "color": "#90ee90"},
+                                    {"range": [2, 3], "color": "#00c853"},
+                            ]
+                        }
+                    ))
+
+                    fig.update_layout(height=420)
 
                     st.plotly_chart(fig, use_container_width=True)
                 with col2:
@@ -935,7 +1031,7 @@ def quantum_portfolio_objectives():
     raw_data = data["raw_data"]
     tickers = data["tickers"]
 
-    st.header("🚀 Quantum Processed Portfolio Objectives",text_alignment="center")
+    st.header("🚀 Quantum Portfolio Optimization",text_alignment="center")
     with st.container():
         try:
             with open("quantum_optimization_results.json","r") as f:
@@ -957,28 +1053,84 @@ def quantum_portfolio_objectives():
             sharpe_ratio = (portfolio_return - risk_free_rate) / portfolio_risk
             expected_profit = capital * portfolio_return
             asset_profit=result["asset_profit_per_asset"]
+            selected_assets=result["selected_assets"]
+            capital_invested=result["invested_capital"]
+            remaining_cash=result["cash_remaining"]
+            obj_value=result["obj_value"]
+            normal_weights=result["normal_weights"]
+            quantum_execution_time=result["execution_time"]
+            binary_objective_breakdown=result["binary_breakdown"]
+            continuous_breakdown=result["continuous_breakdown"]
 
+            weights = (
+                pd.Series(normal_weights)
+                .reindex(daily_returns.columns, fill_value=0)
+            )
+
+            portfolio_daily_returns = (
+                daily_returns.mul(weights, axis=1)
+            ).sum(axis=1)
+
+            confidence=0.95
+            quantum_var = -np.percentile(portfolio_daily_returns,(1-confidence)*100)
+
+            quantum_tail = portfolio_daily_returns[
+                portfolio_daily_returns <= -quantum_var
+            ]
+
+            quantum_cvar = -quantum_tail.mean()
             
             col_1,col_2,col_3,col_4=st.columns(4)
             with col_1:
-                col_1.metric("Portfolio Return",round(portfolio_return,3))
+                kpi_card("Portfolio Return", round(portfolio_return,3), "#2563EB")
             with col_2:
-                col_2.metric("Portfolio Risk",round(portfolio_risk,3))
+                kpi_card("Portfolio Risk", round(portfolio_risk,3),"#DC2626")
             with col_3:
-                col_3.metric("Expected Profit",int(portfolio_profit))
+                kpi_card("Expected Profit", int(portfolio_profit),"#16A34A")
             with col_4:
-                col_4.metric("Expected Risk",int(round(portfolio_risk*100000,3)))
-            
+                kpi_card("Expected Risk", int(round(portfolio_risk*100000,3)), "#B91C1C")
             with st.container():
                 col1,col2,col3,col4=st.columns(4,gap="large")
                 with col1:
-                    col1.metric("Alogrithm",algorithm)
+                    kpi_card("Algorithm", algorithm,"#7C3AED")
                 with col2:
-                    col2.metric("Optimizer",optimizer)
+                    kpi_card("Optimizer", optimizer, "#6366F1")
                 with col3:
-                    col3.metric("Layers",circuit_layers)
+                    kpi_card("Layers", circuit_layers, "#0891B2")
                 with col4:
-                    col4.metric("Circuit Depth",circuit_depth)
+                    kpi_card("Circuit Depth", circuit_depth,"#0F766E")
+            with st.container():
+                col1,col2,col3,col4=st.columns(4)
+                with col1:
+                    kpi_card("Capital Invested", round(capital_invested,5), "#16A34A")
+                with col2:
+                    kpi_card("Remaining Cash", round(remaining_cash,5),"#F59E0B")
+                with col3:
+                    kpi_card("Transaction Cost", round(transaction_cost,3), "#D97706")
+                with col4:
+                    kpi_card("Objective Value", round(obj_value,3),"#1F2937")
+            with st.container():
+                col1,col2,col3,col4=st.columns(4)
+                with col1:
+                    kpi_card("Var (95%)", round(quantum_var,3),"#EA580C")
+                with col2:
+                    kpi_card("CVaR (95%)", round(quantum_cvar,3), "#DC2626")
+                with col3:
+                    kpi_card("Execution Time (s)", round(quantum_execution_time,3),"#4B5563")
+                with col4:
+                    kpi_card("Selected Assets", ",".join(selected_assets), "#7C3AED")
+            with st.container():
+                col1,col2=st.columns(2)
+                with col1:
+                    st.subheader("Binary Objective Breakdown")
+                    binary_breakdown_df = pd.DataFrame.from_dict(binary_objective_breakdown, orient='index', columns=['Value'])
+                    binary_breakdown_df.index.name = 'Component'
+                    st.dataframe(binary_breakdown_df)
+                with col2:
+                    st.subheader("Continuous Objective Breakdown")
+                    continuous_breakdown_df = pd.DataFrame.from_dict(continuous_breakdown, orient='index', columns=['Value'])
+                    continuous_breakdown_df.index.name = 'Component'
+                    st.dataframe(continuous_breakdown_df)
             with st.container():
                 col1,col2=st.columns(2)
                 with col1:
@@ -1338,6 +1490,27 @@ def quantum_portfolio_objectives():
                     "qaoa_circuit.png",
                     use_container_width=True
                      )
+                with col2:
+                    fig = go.Figure(go.Indicator(
+                        mode="gauge+number",
+                        value=sharpe_ratio,
+                        number={"valueformat": ".3f"},
+                        title={"text": "Quantum Portfolio Sharpe Ratio"},
+                        gauge={
+                            "axis": {"range": [-1, 3]},
+                            "bar": {"color": "royalblue"},
+                            "steps": [
+                                {"range": [-1, 0], "color": "#ff4d4d"},
+                                {"range": [0, 1], "color": "#ffd54f"},
+                                {"range": [1, 2], "color": "#90ee90"},
+                                {"range": [2, 3], "color": "#00c853"},
+                            ]
+                        }
+                    ))
+
+                    fig.update_layout(height=400)
+
+                    st.plotly_chart(fig, use_container_width=True)
         except Exception as e:
             st.exception(e)
 
@@ -1357,10 +1530,10 @@ def classicalvsquantum():
     tickers = data["tickers"]
 
     with st.container():
-        st.header("🤝 Comparision of Classical and Quantum Portfolio Optimizations",text_alignment="center")
-        col1,col2=st.columns(2)
-        with col1:
-            st.subheader("Classical Objectives")
+        st.header("🤝 Classical vs Quantum Portfolio Comparison",text_alignment="center")
+        left,right=st.columns(2)
+        with left:
+            st.subheader("Classical Portfolio",text_alignment="center")
             try:
                 with open("optimization_results.json", "r") as f:
                     saved_results = json.load(f)
@@ -1375,32 +1548,91 @@ def classicalvsquantum():
                 risk_free_rate = 0.05
                 sharpe_ratio = (p_return - risk_free_rate) / p_volatility
                 expected_profit=capital*p_return
+                classical_transaction_cost=saved_results["total_transaction_cost"]
+                classical_execution_time=saved_results["execution_time"]
+                weight_series = (
+                                pd.Series(weights)
+                                .reindex(daily_returns.columns, fill_value=0)
+                            )
                 
-                st.metric("Portfolio Return",round(p_return,5))
-                st.metric("Portfolio Risk",round(p_volatility,3))
-                st.metric("Algorithm Used",bin_opt)
-                st.metric("Classical Optimizer",class_opt)
-                st.metric("Sharpe Ratio",round(sharpe_ratio,5))
-                st.metric("Expected Profit",round(expected_profit,3))
+                portfolio_daily_returns = (
+                                daily_returns.mul(weight_series, axis=1)
+                            ).sum(axis=1)
+                
+                confidence = 0.95
+                
+                classical_var = -np.percentile(portfolio_daily_returns,
+                                                        (1-confidence)*100)
+                
+                classical_tail = portfolio_daily_returns[portfolio_daily_returns <= -classical_var]
+                
+                classical_cvar = -classical_tail.mean()
                 with st.container():
-                    invest_weights=pd.DataFrame(list(investment_values.items()),columns=["Ticker","Investment"])
-                    fig = px.pie(
-                    invest_weights,
-                    names="Ticker",
-                    values="Investment",
-                    title="Portfolio Allocation",
-                    )
-                    
-                    fig.update_layout(
-                        width=300,
-                        height=400
-                    )
-                    
-                    st.plotly_chart(fig,use_container_width=True,key="classical_pie")                        
+                    with st.container():
+                        col1,col2=st.columns(2)
+                        with col1:
+                            kpi_card(
+
+                                "📈 Portfolio Return",
+                                f"{p_return:.5f}",
+                                "#2563EB" 
+                            )
+                        with col2:
+                            kpi_card(
+
+                                "📉 Portfolio Risk",
+                                f"{p_volatility:.3f}",
+                                "#DC2626"
+                            )
+                    with st.container():
+                        col1,col2=st.columns(2)
+                        with col1:
+                            kpi_card(
+    
+                                "⚙️ Algorithm Used",
+                                bin_opt,
+                                "#7C3AED"      # Purple
+                            )
+                        with col2:
+                            kpi_card(
+    
+                                "🧮 Classical Optimizer",
+                                class_opt,
+                                "#6366F1"      # Indigo
+                            )
+                    with st.container():
+                        col1,col2=st.columns(2)
+                        with col1:
+                            kpi_card(
+                                "⭐ Sharpe Ratio",
+                                f"{sharpe_ratio:.5f}",
+                                "#16A34A"      # Green
+                            )
+                        with col2:
+                            kpi_card(
+                                "💵 Expected Profit",
+                                f"₹{expected_profit:,.2f}",
+                                "#10B981"      # Emerald
+                            )
+                    with st.container():
+                        invest_weights=pd.DataFrame(list(investment_values.items()),columns=["Ticker","Investment"])
+                        fig = px.pie(
+                        invest_weights,
+                        names="Ticker",
+                        values="Investment",
+                        title="Portfolio Allocation",
+                        )
+                        
+                        fig.update_layout(
+                            width=300,
+                            height=400
+                        )
+                        
+                        st.plotly_chart(fig,use_container_width=True,key="classical_pie")                        
             except Exception as e:
                 st.exception(e)
-        with col2:
-            st.subheader("Quantum Objectives")
+        with right:
+            st.subheader("Quantum Portfolio",text_alignment="center")
             try:
                 with open("quantum_optimization_results.json","r") as f:
                     result=json.load(f)
@@ -1410,7 +1642,7 @@ def classicalvsquantum():
                 portfolio_risk=result["quantum_portfolio_risk"]
                 portfolio_profit=result["quantum_expected_profit"]
                 portfolio_weights_dict=result["optimized_weights"]
-                transaction_cost=result["total_transaction_cost"]
+                quantum_transaction_cost=result["total_transaction_cost"]
                 capital=result["capital"]
                 algorithm=result["algo"]
                 optimizer=result["optimizer"]
@@ -1419,14 +1651,64 @@ def classicalvsquantum():
                 risk_free_rate = 0.05
                 sharpe_ratio = (portfolio_return - risk_free_rate) / portfolio_risk
                 expected_profit = capital * portfolio_return
-
+                normal_weights=result["normal_weights"]
+                quantum_execution_time=result["execution_time"]
                 
-                st.metric("Portfolio Return",round(portfolio_return,5))
-                st.metric("Portfolio Risk",round(portfolio_risk,3))
-                st.metric("Algorithm Used",algorithm)
-                st.metric("Classical Optimizer","SLSQP")
-                st.metric("Sharpe Ratio",round(sharpe_ratio,5))
-                st.metric("Expected Profit",round(expected_profit,3))
+                weights = (pd.Series(normal_weights).reindex(daily_returns.columns, fill_value=0))
+                
+                portfolio_daily_returns = (daily_returns.mul(weights, axis=1)).sum(axis=1)
+                
+                confidence=0.95
+                quantum_var = -np.percentile(portfolio_daily_returns,(1-confidence)*100)
+                
+                quantum_tail = portfolio_daily_returns[portfolio_daily_returns <= -quantum_var]
+                
+                quantum_cvar = -quantum_tail.mean()
+                with st.container():
+                    with st.container():
+                        col1,col2=st.columns(2)
+                        with col1:
+                            kpi_card(
+                                "📈 Portfolio Return",
+                                f"{portfolio_return:.5f}",
+                                "#2563EB" 
+                            )
+                        with col2:
+                            kpi_card(
+                                "📉 Portfolio Risk",
+                                f"{portfolio_risk:.3f}",
+                                "#DC2626"
+                            )
+                    with st.container():
+                        col1,col2=st.columns(2)
+                        with col1:
+                            kpi_card(
+    
+                                "⚙️ Algorithm Used",
+                                algorithm,
+                                "#7C3AED"      # Purple
+                            )
+                        with col2:
+                            kpi_card(
+    
+                                "🧮 Classical Optimizer",
+                                "SLSQP",
+                                "#6366F1"      # Indigo
+                            )
+                    with st.container():
+                        col1,col2=st.columns(2)
+                        with col1:
+                            kpi_card(
+                                "⭐ Sharpe Ratio",
+                                f"{sharpe_ratio:.5f}",
+                                "#16A34A"      # Green
+                            )
+                        with col2:
+                            kpi_card(
+                                "💵 Expected Profit",
+                                f"₹{expected_profit:,.2f}",
+                                "#10B981"      # Emerald
+                            )
                 with st.container():
                     portfolio_weights=pd.DataFrame(list(portfolio_weights_dict.items()),columns=["Ticker","Investment"])
                     fig = px.pie(
@@ -1445,6 +1727,38 @@ def classicalvsquantum():
             except Exception as e:
                 st.exception(e)       
 
+        # Classical
+        classical_weights = (
+            pd.Series(weights)
+            .reindex(daily_returns.columns, fill_value=0)
+        )
+
+        classical_daily_returns = (
+            daily_returns.mul(classical_weights, axis=1)
+        ).sum(axis=1)
+
+        confidence = 0.95
+
+        classical_var = -np.percentile(classical_daily_returns, 5)
+        classical_cvar = -classical_daily_returns[
+            classical_daily_returns <= -classical_var
+        ].mean()
+
+
+        # Quantum
+        quantum_weights = (
+            pd.Series(normal_weights)
+            .reindex(daily_returns.columns, fill_value=0)
+        )
+
+        quantum_daily_returns = (
+            daily_returns.mul(quantum_weights, axis=1)
+        ).sum(axis=1)
+
+        quantum_var = -np.percentile(quantum_daily_returns, 5)
+        quantum_cvar = -quantum_daily_returns[
+            quantum_daily_returns <= -quantum_var
+        ].mean()
         classical_sharpe = (p_return - risk_free_rate) / p_volatility
         quantum_sharpe = (portfolio_return - risk_free_rate) / portfolio_risk
 
@@ -1491,71 +1805,178 @@ def classicalvsquantum():
 
         st.plotly_chart(fig, use_container_width=True)
 
-        classical_df = pd.DataFrame(
-        list(investment_values.items()),
-        columns=["Ticker", "Classical"]
-        )
-
-        quantum_df = pd.DataFrame(
-        list(portfolio_weights_dict.items()),
-        columns=["Ticker", "Quantum"]
-        )
-    
-        allocation_df = pd.merge(
-            classical_df,
-            quantum_df,
-            on="Ticker",
-            how="outer"
-            ).fillna(0)
-
-        fig = px.bar(
-            allocation_df,
-            x="Ticker",
-            y=["Classical", "Quantum"],
-            barmode="group",
-            title="Portfolio Allocation Comparison",
-            text_auto=".2f"
-            )
-
-        fig.update_layout(
-            xaxis_title="Assets",
-            yaxis_title="Investment (₹)",
-            legend_title="Method",
-            height=500
-            )
-
-        st.plotly_chart(fig, use_container_width=True)
 
     with st.container():
-        scatter_df = pd.DataFrame({
-            "Method": ["Classical", "Quantum"],
-            "Risk": [p_volatility, portfolio_risk],
-            "Return": [p_return, portfolio_return]
-        })
+        col1,col2=st.columns(2)
+        with col1:
+            scatter_df = pd.DataFrame({
+                "Method": ["Classical", "Quantum"],
+                "Risk": [p_volatility, portfolio_risk],
+                "Return": [p_return, portfolio_return]
+            })
 
-        fig = px.scatter(
-            scatter_df,
-            x="Risk",
-            y="Return",
-            color="Method",
-            text="Method",
-            size=[30, 30],
-            title="Risk vs Return Comparison"
-        )
+            fig = px.scatter(
+                scatter_df,
+                x="Risk",
+                y="Return",
+                color="Method",
+                text="Method",
+                size=[30, 30],
+                title="Risk vs Return Comparison"
+            )
 
-        fig.update_traces(
-            textposition="top center",
-            marker=dict(size=22)
-        )
+            fig.update_traces(
+                textposition="top center",
+                marker=dict(size=22)
+            )
 
-        fig.update_layout(
-            xaxis_title="Risk (Volatility)",
-            yaxis_title="Expected Return",
-            height=500
-        )
+            fig.update_layout(
+                xaxis_title="Risk (Volatility)",
+                yaxis_title="Expected Return",
+                height=500
+            )
 
-        st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, use_container_width=True)
+        with col2:
+            classical_df = pd.DataFrame(
+                    list(investment_values.items()),
+                    columns=["Ticker", "Classical"]
+                    )
+            
+            quantum_df = pd.DataFrame(
+                    list(portfolio_weights_dict.items()),
+                    columns=["Ticker", "Quantum"]
+                    )
+                
+            allocation_df = pd.merge(
+                        classical_df,
+                        quantum_df,
+                        on="Ticker",
+                        how="outer"
+                        ).fillna(0)
+            
+            fig = px.bar(
+                        allocation_df,
+                        x="Ticker",
+                        y=["Classical", "Quantum"],
+                        barmode="group",
+                        title="Portfolio Allocation Comparison",
+                        text_auto=".2f"
+                        )
+            
+            fig.update_layout(
+                        xaxis_title="Assets",
+                        yaxis_title="Investment (₹)",
+                        legend_title="Method",
+                        height=500
+                        )
+            
+            st.plotly_chart(fig, use_container_width=True)
+    with st.container():
+        col1,col2=st.columns(2)
+        with col1:
+            comparison_return = pd.DataFrame({
+                "Method": ["Classical", "Quantum"],
+                "Return": [p_return, portfolio_return]
+            })
 
+            fig = px.bar(
+                comparison_return,
+                x="Method",
+                y="Return",
+                color="Method",
+                text_auto=".2%",
+                title="Expected Portfolio Return Comparison"
+            )
+
+            st.plotly_chart(fig, use_container_width=True)
+        with col2:
+            comparison_risk = pd.DataFrame({
+                "Method": ["Classical", "Quantum"],
+                "Risk": [p_volatility, portfolio_risk]
+            })
+
+            fig = px.bar(
+                comparison_risk,
+                x="Method",
+                y="Risk",
+                color="Method",
+                text_auto=".2%",
+                title="Portfolio Risk Comparison"
+            )
+
+            st.plotly_chart(fig, use_container_width=True)
+    with st.container():
+        col1,col2=st.columns(2)
+        with col1:
+            comparison_var = pd.DataFrame({
+                "Method": ["Classical", "Quantum"],
+                "VaR": [classical_var, quantum_var]
+            })
+
+            fig = px.bar(
+                comparison_var,
+                x="Method",
+                y="VaR",
+                color="Method",
+                text_auto=".4f",
+                title="Value at Risk (95%)"
+            )
+            st.plotly_chart(fig, use_container_width=True)
+
+        with col2:
+            comparison_cvar = pd.DataFrame({
+                "Method": ["Classical", "Quantum"],
+                "CVaR": [classical_cvar, quantum_cvar]
+            })
+
+            fig = px.bar(
+                comparison_cvar,
+                x="Method",
+                y="CVaR",
+                color="Method",
+                text_auto=".4f",
+                title="Conditional Value at Risk (95%)"
+            )
+
+            st.plotly_chart(fig, use_container_width=True)
+    with st.container():
+        col1,col2=st.columns(2)
+        with col1:
+            comparison_sharpe = pd.DataFrame({
+                "Method": ["Classical", "Quantum"],
+                "Sharpe Ratio": [classical_sharpe, quantum_sharpe]
+            })
+
+            fig = px.bar(
+                comparison_sharpe,
+                x="Method",
+                y="Sharpe Ratio",
+                color="Method",
+                text_auto=".6f",
+                title="Sharpe Ratio Comparison"
+            )
+
+            st.plotly_chart(fig, use_container_width=True)
+        with col2:
+            comparison_time = pd.DataFrame({
+                "Method": ["Classical", "Quantum"],
+                "Execution Time (s)": [
+                    classical_execution_time,
+                    quantum_execution_time
+                ]
+            })
+
+            fig = px.bar(
+                comparison_time,
+                x="Method",
+                y="Execution Time (s)",
+                color="Method",
+                text_auto=".4f",
+                title="Execution Time Comparison"
+            )
+
+            st.plotly_chart(fig, use_container_width=True)
 
 def aicopilot():
     st.header("Welcome to MAPO Co-pilot",text_alignment="center")

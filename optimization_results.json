@@ -1,35 +1,59 @@
 {
     "optimal_weights": {
-        "NVDA": 0.0,
-        "MSFT": 66666.66666666667,
+        "NVDA": 8.65545877397726,
+        "MSFT": 14977.194956900172,
         "AAPL": 0.0,
         "META": 0.0,
-        "GOOGL": 33333.333333333336
+        "GOOGL": 9.800869827324403
     },
-    "portfolio_return": 0.6355633333333334,
-    "portfolio_volatility": 0.2565618850595646,
+    "portfolio_return": 0.11194446423277665,
+    "portfolio_volatility": 0.04455088597215181,
     "investment_values": {
-        "NVDA": 0.0,
-        "MSFT": 66666.66666666667,
+        "NVDA": 8.65545877397726,
+        "MSFT": 14977.194956900172,
         "AAPL": 0.0,
         "META": 0.0,
-        "GOOGL": 33333.333333333336
+        "GOOGL": 9.800869827324403
     },
     "capital": 100000,
     "weights": {
-        "NVDA": 0.0,
-        "MSFT": 0.6666666666666667,
+        "NVDA": 8.655458773977261e-05,
+        "MSFT": 0.14977194956900172,
         "AAPL": 0.0,
         "META": 0.0,
-        "GOOGL": 0.33333333333333337
+        "GOOGL": 9.800869827324404e-05
     },
     "assets_profit": {
-        "NVDA": 0.0,
-        "MSFT": 49796.66666666667,
+        "NVDA": 3.1849491650604125,
+        "MSFT": 11187.215773056583,
         "AAPL": -0.0,
         "META": -0.0,
-        "GOOGL": 13759.666666666668
+        "GOOGL": 4.04570105602124
     },
+    "opt_selected_labels": [
+        "NVDA",
+        "MSFT",
+        "GOOGL"
+    ],
     "bin_opt": "CPLEX",
-    "class_opt": "SLSQP"
+    "class_opt": "TRUST-CONSTR",
+    "invested_capital": 14995.651285501473,
+    "cash_remaining": 85004.34871449853,
+    "total_transaction_cost": 14.97764561725236,
+    "execution_time": 0.1016021000687033,
+    "binary_breakdown": {
+        "expected_return": 1.5277100000000001,
+        "risk_penalty": 0.1973959307974487,
+        "transaction_cost": 0.0010507563677632195,
+        "liquidity_reward": 0.06173829098116538,
+        "diversification_penalty": 0.03817764773566674,
+        "binary_objective": -1.3528239560802868
+    },
+    "continuous_breakdown": {
+        "expected_return": 0.11194446423277665,
+        "risk_penalty": 0.0009923907204518365,
+        "transaction_cost": 0.00014977645617252362,
+        "unused_cash_penalty": 0.0008500434871449852,
+        "continuous_objective": -0.10995225356900731
+    }
 }

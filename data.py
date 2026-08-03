@@ -3,15 +3,6 @@ import numpy as np
 import pandas as pd
 import os
 
-assets = {
-    "SPY": "US Equity",
-    "EFA": "International Equity",
-    "IEF": "Government Bond",
-    "LQD": "Corporate Bond",
-    "GLD": "Gold",
-    "VNQ": "REIT",
-    "SHV": "Cash"
-}
 
 def get_financial_data(tickers,start_date,end_date):
     raw_data=yf.download(tickers, start=start_date, end=end_date,auto_adjust=True)
@@ -39,6 +30,11 @@ def get_financial_data(tickers,start_date,end_date):
 
     cov_matrix=(daily_cov*252)
 
+    std_dev = np.sqrt(np.diag(cov_matrix))
+
+    corr_matrix = cov_matrix / np.outer(std_dev, std_dev)
+    corr_matrix = np.nan_to_num(corr_matrix)
+
     anonymous_labels=list(tickers)
 
     log_liquidity = np.log1p(avg_dollar_volume)
@@ -51,6 +47,6 @@ def get_financial_data(tickers,start_date,end_date):
     transaction_cost_vector = 1 / (liquidity_scores + 0.01)
 
     transaction_cost_vector /= transaction_cost_vector.max()
-    return exp_returns,cov_matrix,anonymous_labels,daily_returns,adj_close_data,liquidity_scores,transaction_cost_vector
+    return exp_returns,cov_matrix,corr_matrix,anonymous_labels,daily_returns,adj_close_data,liquidity_scores,transaction_cost_vector
 
 
