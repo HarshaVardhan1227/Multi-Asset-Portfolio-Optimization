@@ -50,7 +50,22 @@ The optimization problem is formulated as a Quadratic Unconstrained Binary Optim
 
 ---
 
+### Why We Proposed this Solution
+We proposed a hybrid classical-quantum solution because real-world portfolio optimization involves multiple objectives and constraints that become computationally challenging as the number of assets increases. By combining Markowitz optimization for weight allocation with QUBO-based QAOA for asset selection, our approach leverages the strengths of both classical and quantum computing to build diversified, risk-aware, and efficient investment portfolios.
+
+---
 ### Methods and tools
+
+
+* **Data Collection:** Retrieved historical market data using Yahoo Finance (`yfinance`).
+* **Data Processing:** Calculated expected returns, covariance matrix, volatility, and correlation.
+* **Feature Engineering:** Computed liquidity scores, transaction costs, and sector mapping.
+* **Portfolio Optimization:** Built a multi-objective model to maximize returns while minimizing risk and transaction costs, and improving liquidity and diversification.
+* **Classical Optimization:** Applied Markowitz Mean-Variance Optimization using the SciPy SLSQP optimizer.
+* **QUBO Formulation:** Converted the optimization problem into a QUBO model using Qiskit Optimization.
+* **Quantum Optimization:** Solved the QUBO using QAOA with the COBYLA optimizer on the Qiskit Aer Statevector Simulator.
+* **Evaluation & Visualization:** Compared classical and quantum portfolios using an interactive Streamlit dashboard with performance metrics and visualizations.
+---
 
 ### Tools and Technologies
 | Category | Tools / Libraries |
@@ -75,7 +90,18 @@ The optimization problem is formulated as a Quadratic Unconstrained Binary Optim
 ### Project Workflow
 <img width="1024" height="1536" alt="Image" src="https://github.com/user-attachments/assets/893178a7-9469-4c6b-9017-88135645c217" />
 
-### 
+## Prerequisites
+
+Before running this project, it is recommended to create and activate a Python virtual environment (`venv`) to isolate project dependencies and avoid conflicts with other Python packages.
+
+### Create a Virtual Environment
+
+**Windows**
+```bash
+python -m venv venv
+venv\Scripts\activate
+```
+---
 ### Install Required Packages
 
 ```bash
@@ -92,9 +118,26 @@ pip install qiskit-optimization
 pip install qiskit-algorithms
 pip install qiskit-ibm-runtime
 pip install cplex
-pip install openai
 pip install google-genai
-pip install python-dotenv
+```
+---
+### User Interactive Dashboard
+## Running the Project
+
+After creating the virtual environment and installing all the required dependencies, launch the interactive Streamlit dashboard using the following command:
+
+```bash
+streamlit run dashboard.py
 ```
 
+This command starts the user-interactive dashboard in your default web browser, where you can:
+
+- Configure portfolio optimization parameters
+- Perform Classical and Quantum portfolio optimization
+- Compare Classical vs Quantum results
+- Analyze portfolio performance and visualizations
+- Interact with the AI Portfolio Co-Pilot
+---
+
+### Features of this Project
 
