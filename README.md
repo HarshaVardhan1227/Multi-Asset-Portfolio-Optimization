@@ -5,9 +5,11 @@
 ### Challenge Selected - Multi-Asset Portfolio Construction
 ---
 ### Team Members and Contributions
+
 | Name | Role | Contribution |
 | :--- | :--- | :--- |
-| **Sri Sai Harsha Vardhan Prabhamdhamkam** | Quantum Software Developer | Project Design, Mathematical Modeling, QUBO Formulation, Classical Optimization, Quantum Optimization (QAOA), Streamlit Dashboard, Visualization, Documentation |
+| **Sri Sai Harsha Vardhan Prabhamdhamkam** | Quantum Software Developer | Project Design, Mathematical Modeling, QUBO Formulation, Classical Optimization, Quantum Optimization (QAOA), Streamlit Dashboard Development, Visualization, Testing, Documentation |
+| **Jayadeep Potluri** | Documentation & Project Support | README Documentation, Repository Organization, Testing, Presentation Preparation, Result Compilation |
 ---
 ### Project Overview
 
@@ -50,11 +52,30 @@ The optimization problem is formulated as a Quadratic Unconstrained Binary Optim
 
 ### Methods and tools
 
+### Tools and Technologies
+| Category | Tools / Libraries |
+| :--- | :--- |
+| **Programming Language** | Python 3.x |
+| **Financial Data** | Yahoo Finance (`yfinance`) |
+| **Numerical Computing** | NumPy |
+| **Data Processing** | Pandas |
+| **Classical Optimization** | SciPy (SLSQP Optimizer) |
+| **Quantum Computing** | Qiskit |
+| **QUBO Modeling** | Qiskit Optimization |
+| **Quantum Algorithm** | QAOA (Quantum Approximate Optimization Algorithm) |
+| **Classical Optimizer for QAOA** | COBYLA |
+| **Quantum Simulator** | Qiskit Aer Statevector Simulator |
+| **Visualization** | Plotly, Matplotlib |
+| **Dashboard** | Streamlit |
+| **AI Assistant** | Google Gemini API |
+| **Version Control** | Git & GitHub |
 
 ---
 
 ### Project Workflow
+<img width="1024" height="1536" alt="Image" src="https://github.com/user-attachments/assets/893178a7-9469-4c6b-9017-88135645c217" />
 
+### 
 ### Install Required Packages
 
 ```bash
