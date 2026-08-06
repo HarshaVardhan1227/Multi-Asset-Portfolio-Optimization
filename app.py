@@ -378,7 +378,7 @@ def portfolio_configuration():
 def home_page():
     scroll_to_top()
     with st.container():
-        st.title("Multi Asset Portfolio Optimization",text_alignment="center")
+        st.title("Multi-Asset Portfolio Optimization using Hybrid Classical-Quantum Computing",text_alignment="center")
         
         st.markdown("""
             Welcome to the **Multi-Asset Portfolio Optimization Dashboard**, an intelligent investment platform that combines
@@ -1391,10 +1391,10 @@ def quantum_portfolio_objectives():
             with st.container():
                 col1,col2=st.columns(2)
                 with col1:
-                    investment_values=[investment_per_asset[label] for label in labels]
+                    investment_values_of_weights=[investment_per_asset[label] for label in labels]
                     df = pd.DataFrame({
                         "Asset": labels,
-                        "Investment": investment_values
+                        "Investment": investment_values_of_weights
                     })
 
                     fig = px.bar(

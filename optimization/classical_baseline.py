@@ -209,7 +209,7 @@ def run_classical_baseline(qubo,qp,labels,expected_returns,cov_matrix,corr_matri
         "continuous_breakdown":continuous_breakdown
     }
     
-    with open("optimization_results.json", "w") as f:
+    with open("json/optimization_results.json", "w") as f:
         json.dump(save_data, f, indent=4)
     
 

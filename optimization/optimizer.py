@@ -215,6 +215,6 @@ def quantum_optimizer(qubo,qp,expected_returns,covariance_matrix,liquidity_score
         "continuous_breakdown":continuous_breakdown,
     }
         
-    with open("quantum_optimization_results.json","w") as f:
+    with open("json/quantum_optimization_results.json","w") as f:
         json.dump(quantum_data,f,indent=4)
     
