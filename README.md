@@ -140,4 +140,14 @@ This command starts the user-interactive dashboard in your default web browser, 
 ---
 
 ### Features of this Project
-
+- Hybrid Classical-Quantum Portfolio Optimization
+- Multi-Asset Portfolio Construction
+- QAOA-based Quantum Asset Selection
+- Classical Markowitz Weight Optimization
+- Live Portfolio Configuration Dashboard
+- Market Analysis and Financial Visualizations
+- Classical vs Quantum Performance Comparison
+- Portfolio Playground with Live Objective Function
+- AI Portfolio Co-Pilot
+- Downloadable AI Portfolio Summary Report
+- Interactive Streamlit Dashboard
