@@ -152,9 +152,52 @@ This command starts the user-interactive dashboard in your default web browser, 
 - Downloadable AI Portfolio Summary Report
 - Interactive Streamlit Dashboard
 
+--- 
+
 ### Results and Findings
 - The implementation successfully demonstrates a hybrid classical-quantum portfolio optimization framework capable of constructing diversified investment portfolios while considering expected return, portfolio risk, transaction costs, liquidity, diversification, and practical investment constraints.
 
 - The project includes comprehensive analytical results, performance comparisons, and dashboard visualizations generated from both the classical and quantum optimization approaches.
 
 - All result screenshots, visualizations, performance comparisons, and supporting outputs are included in the Results folder of the project structure, allowing reviewers to easily explore and verify the implementation outcomes.
+
+---
+### Limitations
+
+* **Quantum Simulation:** QAOA is executed on the Qiskit Aer simulator rather than real quantum hardware, so execution times may differ from physical quantum devices.
+* **Limited Asset Universe:** The current implementation is evaluated on a limited number of assets due to computational and quantum hardware constraints.
+* **Parameter Sensitivity:** Optimization results depend on parameters such as risk aversion, transaction costs, liquidity, diversification, and penalty weights, which require careful tuning.
+* **Historical Data Dependency:** Portfolio recommendations are based on historical market data and may not accurately predict future market performance.
+* **Current Hardware Constraints:** Existing quantum hardware has limited qubits and is affected by noise, making large-scale portfolio optimization challenging.
+
+---
+
+### Sources and References
+- **Markowitz, H. (1952).** *Portfolio Selection*. *The Journal of Finance*, 7(1), 77–91.  
+  DOI: https://doi.org/10.1111/j.1540-6261.1952.tb01525.x  
+  JSTOR: https://www.jstor.org/stable/2975974
+
+- **Markowitz, H. M. (1959).** *Portfolio Selection: Efficient Diversification of Investments*. Yale University Press.  
+  https://archive.org/details/portfolioselecti00mark
+
+- **Farhi, E., Goldstone, J., & Gutmann, S. (2014).** *A Quantum Approximate Optimization Algorithm (QAOA).*  
+  arXiv:1411.4028  
+  https://arxiv.org/abs/1411.4028
+- [Qiskit Documentation](https://qiskit.org/documentation/)
+- [Qiskit Optimization Documentation](https://qiskit-community.github.io/qiskit-optimization/)
+- [IBM Quantum Documentation](https://docs.quantum.ibm.com/)
+- [SciPy Optimization Documentation](https://docs.scipy.org/doc/scipy/reference/optimize.html)
+- [SciPy Trust-Constr Optimizer Documentation](https://docs.scipy.org/doc/scipy/reference/optimize.minimize-trustconstr.html)
+- [IBM CPLEX Optimizer Documentation](https://www.ibm.com/docs/en/icos)
+- [Yahoo Finance (yfinance) Documentation](https://ranaroussi.github.io/yfinance/)
+- [Plotly Python Documentation](https://plotly.com/python/)
+- [Streamlit Documentation](https://docs.streamlit.io/)
+- [NumPy Documentation](https://numpy.org/doc/)
+- [Pandas Documentation](https://pandas.pydata.org/docs/)
+- [Matplotlib Documentation](https://matplotlib.org/stable/)
+- [Google Gemini API Documentation](https://ai.google.dev/gemini-api/docs)
+- Vanguard – WISER Quantum Challenge 2026. Challenge Statement: Multi-Asset Portfolio
+Construction. (Project challenge document provided as part of the WISER Quantum
+Challenge.)
+---
+
