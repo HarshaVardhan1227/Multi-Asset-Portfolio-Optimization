@@ -159,7 +159,7 @@ This command starts the user-interactive dashboard in your default web browser, 
 
 - The project includes comprehensive analytical results, performance comparisons, and dashboard visualizations generated from both the classical and quantum optimization approaches.
 
-- All result screenshots, visualizations, performance comparisons, and supporting outputs are included in the Results folder of the project structure, allowing reviewers to easily explore and verify the implementation outcomes.
+- 📂 **All screenshots, visualizations, performance comparisons, and supporting outputs are available in the [`Results`](./Results) folder of this repository.**
 
 ---
 ### Limitations
