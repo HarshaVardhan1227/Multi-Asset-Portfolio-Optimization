@@ -200,4 +200,20 @@ This command starts the user-interactive dashboard in your default web browser, 
 Construction. (Project challenge document provided as part of the WISER Quantum
 Challenge.)
 ---
+### Required Code, Files, and Reporting Materials
 
+| File / Folder | Description |
+|---------------|-------------|
+| `app.py` | Main Streamlit application that integrates all modules and provides the interactive dashboard. |
+| `data/data.py` | Retrieves historical market data, processes asset prices, and computes financial metrics such as expected returns, covariance, correlation, and volatility. |
+| `optimization/classical_baseline.py` | Performs classical portfolio optimization using the Markowitz Mean-Variance model and the SLSQP optimizer. |
+| `optimizationquantum_preprocessing.py` | Builds the portfolio optimization model, formulates the QUBO problem, and converts it into an Ising Hamiltonian. |
+| `optimization/optimizer.py` | Executes the QAOA algorithm to perform quantum asset selection and optimize the portfolio. |
+| `data/asset_mapping.py` | Defines sector mappings, liquidity scores, transaction costs, and asset metadata used in optimization. |
+| `app.py` | Generates market analysis visualizations including expected returns, covariance, correlation, efficient frontier, and cumulative returns. |
+| `playground/portfolio_objective.py` | Provides an interactive environment for adjusting optimization parameters and computing the live objective function. |
+| `copilot/copilot.py` | Implements the AI Portfolio Co-Pilot for portfolio insights, recommendations, and summary generation. |
+| `Results/` | Contains dashboard screenshots, comparison charts, performance visualizations, and supporting outputs. |
+| `README.md` | Provides complete project documentation, setup instructions, methodology, results, and references. |
+
+---
