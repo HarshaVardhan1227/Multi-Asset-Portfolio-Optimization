@@ -153,43 +153,8 @@ This command starts the user-interactive dashboard in your default web browser, 
 - Interactive Streamlit Dashboard
 
 ### Results and Findings
-### Home Page
+- The implementation successfully demonstrates a hybrid classical-quantum portfolio optimization framework capable of constructing diversified investment portfolios while considering expected return, portfolio risk, transaction costs, liquidity, diversification, and practical investment constraints.
 
-<img width="1800" height="970" alt="Image" src="https://github.com/user-attachments/assets/f98abc9a-f8d4-4224-a58e-bf6e5b372e7b" />
+- The project includes comprehensive analytical results, performance comparisons, and dashboard visualizations generated from both the classical and quantum optimization approaches.
 
-### Portfolio Configuration
-
-<img width="1871" height="899" alt="Image" src="https://github.com/user-attachments/assets/67a52469-faa5-44d2-96a2-6c50efbdde99" />
-
-<img width="1635" height="859" alt="Image" src="https://github.com/user-attachments/assets/74230c9f-4017-4860-bac6-2d777e12a7eb" />
-
-### Market Data Analysis
-
-<img width="1701" height="951" alt="Image" src="https://github.com/user-attachments/assets/e323b7bb-e338-48c8-8430-473f0bacd043" />
-<img width="1632" height="844" alt="Image" src="https://github.com/user-attachments/assets/18da8f3b-96a0-4a8a-9060-8e4e69dce348" />
-
-### Classical Portfolio Optimization
-
-<img width="1876" height="909" alt="Image" src="https://github.com/user-attachments/assets/206723eb-1c29-4c25-92d9-47825b169f40" />
-<img width="1869" height="890" alt="Image" src="https://github.com/user-attachments/assets/5fa08a00-f87b-4da8-90f1-50bceb44ce41" />
-<img width="1800" height="891" alt="Image" src="https://github.com/user-attachments/assets/4c8252fd-76cd-4336-a290-4eb5750e9102" />
-
-### Quantum Portfolio Optimization
-
-<img width="1866" height="910" alt="Image" src="https://github.com/user-attachments/assets/1e7d2b6c-a53c-487c-bfce-869fed87fc36" />
-<img width="1802" height="896" alt="Image" src="https://github.com/user-attachments/assets/8f69510b-e35d-4a65-b5aa-5e94958d8501" />
-<img width="1832" height="896" alt="Image" src="https://github.com/user-attachments/assets/f55d72a2-33e5-46ac-a4cd-ebb3bb5bee8b" />
-<img width="1822" height="903" alt="Image" src="https://github.com/user-attachments/assets/fad61509-c0d3-4aba-8e95-49d3238cd2eb" />
-
-### Classical vs Quantum Portfolio Comparison
-
-<img width="1824" height="765" alt="Image" src="https://github.com/user-attachments/assets/b1975133-d229-4815-9269-b1199f6c8b68" />
-<img width="1821" height="740" alt="Image" src="https://github.com/user-attachments/assets/5b7e12cf-2b56-4307-825f-c718792318e9" />
-<img width="1858" height="737" alt="Image" src="https://github.com/user-attachments/assets/77aa4511-f974-4dba-923e-2026cf24de9f" />
-
-### Portfolio Playground
-<img width="1828" height="908" alt="Image" src="https://github.com/user-attachments/assets/129dd336-6d31-4b09-815b-426b553f0e0a" />
-
-### Ai copilot
-
-<img width="1686" height="929" alt="Image" src="https://github.com/user-attachments/assets/a64820fc-1412-4814-b8e3-049e9bb1a1f4" />
+- All result screenshots, visualizations, performance comparisons, and supporting outputs are included in the Results folder of the project structure, allowing reviewers to easily explore and verify the implementation outcomes.
