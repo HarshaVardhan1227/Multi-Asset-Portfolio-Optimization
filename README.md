@@ -88,7 +88,7 @@ We proposed a hybrid classical-quantum solution because real-world portfolio opt
 ---
 
 ### Project Workflow
-<img width="1024" height="1536" alt="Image" src="https://github.com/user-attachments/assets/893178a7-9469-4c6b-9017-88135645c217" />
+<img width="900" height="900" alt="Image" src="https://github.com/user-attachments/assets/893178a7-9469-4c6b-9017-88135645c217" />
 
 ## Prerequisites
 
