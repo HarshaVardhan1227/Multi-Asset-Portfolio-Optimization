@@ -1,21 +1,23 @@
 import streamlit as st
-from data import get_financial_data 
+from data.data import get_financial_data 
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import numpy as np
 import datetime
-from quantum_preprocessing import build_portfolio_qubo
-from data import get_financial_data
-from classical_baseline import run_classical_baseline
-from optimizer import quantum_optimizer
+from objective.quantum_preprocessing import build_portfolio_qubo
+from data.data import get_financial_data
+from optimization.classical_baseline import run_classical_baseline
+from optimization.optimizer import quantum_optimizer
 import matplotlib.pyplot as plt
 import streamlit.components.v1 as components
-from copilot import ai_copilot
+from copilot.copilot import ai_copilot
 from progress_popup import show_progress
 from streamlit_javascript import st_javascript
-
+import seaborn as sns
+from playground.portfolio_objective import objective_playground
+from PIL import Image
 
 import json
 st.set_page_config(layout="wide")
@@ -81,18 +83,6 @@ def scroll_to_top():
 def run_portfolio_optimization(config, tickers,start_date, end_date):
     expected_returns,covariance_matrix,corr_matrix,labels,daily_returns,adj_close_data,liquidity_scores,transaction_cost_vector=get_financial_data(tickers,start_date,end_date)
 
-    
-    st.session_state["portfolio_data"] = {
-    "expected_returns": expected_returns,
-    "covariance_matrix": covariance_matrix,
-    "corr_matrix": corr_matrix,
-    "labels": labels,
-    "daily_returns": daily_returns,
-    "raw_data": adj_close_data,
-    "liquidity_scores": liquidity_scores,
-    "transaction_cost_vector": transaction_cost_vector,
-    "tickers": tickers
-    }
 
     qubo, qp = build_portfolio_qubo(
         expected_returns,
@@ -104,12 +94,24 @@ def run_portfolio_optimization(config, tickers,start_date, end_date):
         transaction_cost_vector,
         config
     )
-    
+    st.success("Objective Function and QUBO Formulation is Done")
+    st.session_state["portfolio_data"] = {
+        "expected_returns": expected_returns,
+        "covariance_matrix": covariance_matrix,
+        "corr_matrix": corr_matrix,
+        "labels": labels,
+        "daily_returns": daily_returns,
+        "raw_data": adj_close_data,
+        "liquidity_scores": liquidity_scores,
+        "transaction_cost_vector": transaction_cost_vector,
+        "tickers": tickers,
+        "qubo":qubo
+    }
 
     run_classical_baseline(qubo,qp,labels,expected_returns,covariance_matrix,corr_matrix,transaction_cost_vector,liquidity_scores,config)
-    
+    st.success("Classical Portfolio Optimization is Done")
     quantum_optimizer(qubo,qp,expected_returns,covariance_matrix,liquidity_scores,labels,daily_returns,transaction_cost_vector,corr_matrix,config)
-    st.success("Portfolio Optimization done")
+    st.success("Quantum Portfolio Optimization is Done")
     st.session_state.messages = []
 
     return qubo,qp
@@ -178,6 +180,17 @@ def portfolio_configuration():
                         step=0.01,
                         help="Controls the importance of liquidity in portfolio optimization."
                     )
+
+                    st.subheader("🌐 Diversification Settings")
+                    diversification_weight = st.slider(
+                        "Diversification Weight",
+                        min_value=0.0,
+                        max_value=1.0,
+                        value=0.05,
+                        step=0.01,
+                        help="Controls the importance of diversification in portfolio optimization."
+                    )
+
             with st.container():
                 st.subheader("📊 Asset Selection")
 
@@ -328,24 +341,6 @@ def portfolio_configuration():
                         step=1,
                         help="Maximum number of assets that can be included in the optimized portfolio."
                     )
-
-                    budget_constraint = st.checkbox(
-                            "💰 Enable Budget Constraint",
-                            value=True,
-                            help="Ensures the total investment does not exceed the available capital."
-                        )
-
-                    diversification = st.checkbox(
-                            "📊 Enable Diversification Penalty",
-                            value=True,
-                            help="Encourages investment across multiple assets."
-                        )
-
-                    liquidity_constraint = st.checkbox(
-                            "💧 Enable Liquidity Constraint",
-                            value=True,
-                            help="Prefers assets with higher market liquidity."
-                        )
             with st.container():
                 run = st.button(
                     "🚀 Run Portfolio Optimization",
@@ -362,10 +357,7 @@ def portfolio_configuration():
                         "transaction_cost": transaction_cost,
                         "liquidity_weight":liquidity_weight,
                         "max_assets": max_assets,
-                        "budget_constraint": budget_constraint,
-                        "diversification": diversification,
-                        "diversification_penalty": 0.05,
-                        "liquidity_constraint": liquidity_constraint,
+                        "diversification_weight":diversification_weight,
                         "sector_limits": {
                             "tech_sector_percentage": tech_pct,
                             "finance_sector_percentage": financial_pct,
@@ -532,97 +524,99 @@ def details_of_the_assets():
 
             st.plotly_chart(fig, use_container_width=True)
         with st.container():
-            st.subheader("Efficient Frontier Analysis")
+            col1,col2=st.columns(2)
+            with col1:
+                st.subheader("Efficient Frontier Analysis")
 
-            annual_return = daily_returns.mean() * 252
+                annual_return = daily_returns.mean() * 252
 
-            num_portfolios = 5000
+                num_portfolios = 5000
 
-            portfolio_returns = []
-            portfolio_risks = []
+                portfolio_returns = []
+                portfolio_risks = []
 
-            for _ in range(num_portfolios):
+                for _ in range(num_portfolios):
 
-                weights = np.random.random(len(tickers))
-                weights /= np.sum(weights)
+                    weights = np.random.random(len(tickers))
+                    weights /= np.sum(weights)
 
-                ret = np.dot(weights, annual_return)
+                    ret = np.dot(weights, annual_return)
 
-                risk = np.sqrt(
-                    np.dot(weights.T,
-                        np.dot(covariance_matrix, weights))
+                    risk = np.sqrt(
+                        np.dot(weights.T,
+                            np.dot(covariance_matrix, weights))
+                    )
+
+                    portfolio_returns.append(ret)
+                    portfolio_risks.append(risk)
+
+                frontier = pd.DataFrame({
+                    "Risk": portfolio_risks,
+                    "Return": portfolio_returns
+                })
+
+                fig = px.scatter(
+                    frontier,
+                    x="Risk",
+                    y="Return",
+                    opacity=0.5
                 )
 
-                portfolio_returns.append(ret)
-                portfolio_risks.append(risk)
+                fig.update_layout(
+                    height=450,
+                    xaxis_title="Portfolio Risk",
+                    yaxis_title="Portfolio Return"
+                )
 
-            frontier = pd.DataFrame({
-                "Risk": portfolio_risks,
-                "Return": portfolio_returns
-            })
-
-            fig = px.scatter(
-                frontier,
-                x="Risk",
-                y="Return",
-                opacity=0.5
-            )
-
-            fig.update_layout(
-                height=450,
-                xaxis_title="Portfolio Risk",
-                yaxis_title="Portfolio Return"
-            )
-
-            st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, use_container_width=True)
+            with col2:
+                st.subheader("Annualized Risk vs Return of Individual Assets")
+                
+                annual_return = daily_returns.mean() * 252
+                annual_risk = daily_returns.std() * np.sqrt(252)
+                
+                risk_df = pd.DataFrame({
+                    "Ticker": tickers,
+                    "Risk": annual_risk.values,
+                    "Return": annual_return.values
+                })
+                
+                fig = px.scatter(
+                    risk_df,
+                    x="Risk",
+                    y="Return",
+                    text="Ticker",
+                )
+                
+                fig.update_traces(textposition="top center")
+                
+                fig.update_layout(
+                    height=450,
+                    xaxis_title="Annualized Risk",
+                    yaxis_title="Annualized Return"
+                )
+                
+                st.plotly_chart(fig, use_container_width=True)
         with st.container():
             st.subheader("Cumulative Asset Returns")
-
+            
             cumulative_returns = (1 + daily_returns).cumprod()
-
+            
             fig = px.line(
                 cumulative_returns,
                 x=cumulative_returns.index,
                 y=cumulative_returns.columns
             )
-
+            
             fig.update_layout(
                 xaxis_title="Date",
                 yaxis_title="Portfolio Value",
                 height=450,
                 hovermode="x unified"
             )
-
+            
             st.plotly_chart(fig, use_container_width=True)
-        with st.container():
-            st.subheader("Annualized Risk vs Return of Individual Assets")
-
-            annual_return = daily_returns.mean() * 252
-            annual_risk = daily_returns.std() * np.sqrt(252)
-
-            risk_df = pd.DataFrame({
-                "Ticker": tickers,
-                "Risk": annual_risk.values,
-                "Return": annual_return.values
-            })
-
-            fig = px.scatter(
-                risk_df,
-                x="Risk",
-                y="Return",
-                text="Ticker",
-            )
-
-            fig.update_traces(textposition="top center")
-
-            fig.update_layout(
-                height=450,
-                xaxis_title="Annualized Risk",
-                yaxis_title="Annualized Return"
-            )
-
-            st.plotly_chart(fig, use_container_width=True)
-
+                
 def classical_baseline():
     scroll_to_top()
     if "portfolio_data" not in st.session_state:
@@ -641,7 +635,7 @@ def classical_baseline():
     with st.container():
         st.header("📈 Classical Portfolio Optimization",text_alignment="center")
         try:
-            with open("optimization_results.json", "r") as f:
+            with open("json/optimization_results.json", "r") as f:
                 saved_results = json.load(f)
             
             
@@ -1030,11 +1024,11 @@ def quantum_portfolio_objectives():
     daily_returns = data["daily_returns"]
     raw_data = data["raw_data"]
     tickers = data["tickers"]
-
+    qubo=data["qubo"]
     st.header("🚀 Quantum Portfolio Optimization",text_alignment="center")
     with st.container():
         try:
-            with open("quantum_optimization_results.json","r") as f:
+            with open("json/quantum_optimization_results.json","r") as f:
                 result=json.load(f)
                
             
@@ -1061,6 +1055,7 @@ def quantum_portfolio_objectives():
             quantum_execution_time=result["execution_time"]
             binary_objective_breakdown=result["binary_breakdown"]
             continuous_breakdown=result["continuous_breakdown"]
+        
 
             weights = (
                 pd.Series(normal_weights)
@@ -1485,11 +1480,10 @@ def quantum_portfolio_objectives():
             with st.container():
                 col1,col2=st.columns(2)
                 with col1:
-                    st.subheader("QAOA Circuit Diagram")
-                    st.image(
-                    "qaoa_circuit.png",
-                    use_container_width=True
-                     )
+                    st.subheader("QAOA Ansatz")
+                    img = Image.open("img/qaoa_circuit.png")
+                    img = img.resize((600, 600))
+                    st.image(img)
                 with col2:
                     fig = go.Figure(go.Indicator(
                         mode="gauge+number",
@@ -1511,6 +1505,58 @@ def quantum_portfolio_objectives():
                     fig.update_layout(height=400)
 
                     st.plotly_chart(fig, use_container_width=True)
+            with st.container():
+                variables = qubo.variables
+                n = len(variables)
+
+                Q = np.zeros((n, n))
+
+                objective = qubo.objective
+
+                for idx, coeff in objective.linear.to_dict().items():
+                    Q[idx, idx] = coeff
+
+                for (i, j), coeff in objective.quadratic.to_dict().items():
+                    Q[i, j] += coeff
+                    if i != j:
+                        Q[j, i] += coeff
+
+                labels = labels
+
+                fig = go.Figure(
+                    data=go.Heatmap(
+                        z=Q,
+                        x=labels,
+                        y=labels,
+                        colorscale = [
+                            [0.00, "#440154"],
+                            [0.25, "#3b528b"],
+                            [0.50, "#21918c"],
+                            [0.75, "#5ec962"],
+                            [1.00, "#fde725"]
+                        ],
+                        zmid=0,
+                        text=np.round(Q, 2),
+                        texttemplate="%{text}",
+                        textfont={"size": 12},
+                        hovertemplate=(
+                            "<b>%{y}</b> ↔ <b>%{x}</b><br>"
+                            "Coefficient: %{z:.4f}<extra></extra>"
+                        ),
+                        colorbar=dict(title="Coefficient")
+                    )
+                )
+
+                fig.update_layout(
+                    title="QUBO Matrix Heatmap",
+                    xaxis_title="Binary Variables",
+                    yaxis_title="Binary Variables",
+                    width=750,
+                    height=650,
+                    template="plotly_white"
+                )
+
+                st.plotly_chart(fig, use_container_width=True)
         except Exception as e:
             st.exception(e)
 
@@ -1535,7 +1581,7 @@ def classicalvsquantum():
         with left:
             st.subheader("Classical Portfolio",text_alignment="center")
             try:
-                with open("optimization_results.json", "r") as f:
+                with open("json/optimization_results.json", "r") as f:
                     saved_results = json.load(f)
                 p_return = saved_results["portfolio_return"]
                 p_volatility = saved_results["portfolio_volatility"]
@@ -1634,7 +1680,7 @@ def classicalvsquantum():
         with right:
             st.subheader("Quantum Portfolio",text_alignment="center")
             try:
-                with open("quantum_optimization_results.json","r") as f:
+                with open("json/quantum_optimization_results.json","r") as f:
                     result=json.load(f)
                                    
                 
@@ -1653,6 +1699,7 @@ def classicalvsquantum():
                 expected_profit = capital * portfolio_return
                 normal_weights=result["normal_weights"]
                 quantum_execution_time=result["execution_time"]
+                investment_per_asset=result["investment_per_asset"]
                 
                 weights = (pd.Series(normal_weights).reindex(daily_returns.columns, fill_value=0))
                 
@@ -1710,20 +1757,19 @@ def classicalvsquantum():
                                 "#10B981"      # Emerald
                             )
                 with st.container():
-                    portfolio_weights=pd.DataFrame(list(portfolio_weights_dict.items()),columns=["Ticker","Investment"])
+                    portfolio_df = pd.DataFrame(
+                        list(investment_per_asset.items()),
+                        columns=["Ticker", "Investment"]
+                    )
+
                     fig = px.pie(
-                    portfolio_weights,
-                    names="Ticker",
-                    values="Investment",
-                    title="Portfolio Allocation",
+                        portfolio_df,
+                        names="Ticker",
+                        values="Investment",
+                        title="Portfolio Allocation"
                     )
 
-                    fig.update_layout(
-                    width=300,
-                    height=400
-                    )
-
-                    st.plotly_chart(fig,use_container_width=True,key="quantum_pie")
+                    st.plotly_chart(fig, use_container_width=True)
             except Exception as e:
                 st.exception(e)       
 
@@ -2001,6 +2047,8 @@ if __name__=="__main__":
             st.session_state.page="Quantum Portfolio"
         if st.sidebar.button("⚖️ Classical Vs Quantum"):
             st.session_state.page="Classical vs Quantum"
+        if st.sidebar.button("🎨 Portfolio Playground"):
+            st.session_state.page="Portfolio Playground"
         if st.sidebar.button("🤖 AI Copilot"):
             st.session_state.page = "AI Copilot"
 
@@ -2018,6 +2066,8 @@ if __name__=="__main__":
         quantum_portfolio_objectives()
     if st.session_state.page=="Classical vs Quantum":
         classicalvsquantum()
+    if st.session_state.page=="Portfolio Playground":
+        objective_playground()
     if st.session_state.page=="AI Copilot":
         aicopilot()
 

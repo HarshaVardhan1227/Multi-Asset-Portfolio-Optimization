@@ -8,16 +8,17 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph
 from reportlab.lib.styles import getSampleStyleSheet
 import io
 import re
+
 from dotenv import load_dotenv
 
 load_dotenv()
 
 API_KEY=os.getenv("API_KEY")
 styles = getSampleStyleSheet()
-with open("optimization_results.json","r") as f:
+with open("json/optimization_results.json","r") as f:
     classical_optimization_results=json.load(f)
 
-with open("quantum_optimization_results.json","r") as f:
+with open("json/quantum_optimization_results.json","r") as f:
     quantum_optimization_results=json.load(f)
 
 from reportlab.lib.styles import ParagraphStyle
@@ -112,7 +113,6 @@ footer_body = ParagraphStyle(
 
 client = genai.Client(api_key=API_KEY)
 
-
 def generate_pdf(summary, classical_results, quantum_results):
     clean_summary = re.sub(r'^#{1,6}\s*', '', summary, flags=re.MULTILINE)
     clean_summary = clean_summary.replace("\n", "<br/>")
@@ -183,7 +183,7 @@ def generate_pdf(summary, classical_results, quantum_results):
     )
 
     elements.append(bullet_list)
-
+    elements.append(PageBreak())
     elements.append(
     Paragraph(
         "Classical Portfolio",
@@ -215,7 +215,7 @@ def generate_pdf(summary, classical_results, quantum_results):
     elements.append(
         create_table(classical_table)
     )
-
+    elements.append(Spacer(1, 20))
     elements.append(
     Paragraph(
         "Quantum Portfolio",
@@ -244,6 +244,7 @@ def generate_pdf(summary, classical_results, quantum_results):
     elements.append(
         create_table(quantum_table)
     )
+    elements.append(Spacer(1, 20))
     
     comparison = [
 
@@ -270,6 +271,8 @@ def generate_pdf(summary, classical_results, quantum_results):
         comparison,
         colWidths=[170, 140, 140]   # Adjust widths as needed
     )
+
+    elements.append(Spacer(1, 20))
 
     comparison_table.setStyle(TableStyle([
 
@@ -301,9 +304,12 @@ def generate_pdf(summary, classical_results, quantum_results):
         Paragraph("Classical vs Quantum Comparison", heading_style)
     )
 
+
     elements.append(comparison_table)
-
-
+    elements.append(Spacer(1, 20))
+    elements.append(
+        Paragraph("Binary Optimization Objective Function Breakdown", heading_style)
+    )
     objective = [
 
         ["Component","Value"],
@@ -355,7 +361,7 @@ def generate_pdf(summary, classical_results, quantum_results):
 
     elements.append(
         Paragraph(
-            "Quantum Computing & Software Developer",
+            "Quantum Computing & Software Developers",
             footer_body,
         )
     )
@@ -385,7 +391,7 @@ def generate_pdf(summary, classical_results, quantum_results):
 
     elements.append(
         Paragraph(
-            "Python | Qiskit | QAOA | SciPy | CPLEX | Streamlit | Plotly | Gemini AI",
+            "Python | Qiskit | yfinance | QAOA | SciPy | CPLEX | Streamlit | Plotly | Gemini AI ",
             footer_body,
         )
     )
@@ -544,118 +550,96 @@ def portfolio_copilot(question,classical_optimization_results,quantum_optimizati
     return response.text
 
 def ai_copilot():
-
-    if "copilot_open" not in st.session_state:
-        st.session_state.copilot_open = False
-
     if "messages" not in st.session_state:
         st.session_state.messages = []
 
-    # -----------------------
-    # Toggle Button
-    # -----------------------
-
     st.markdown(
-        """
-        <style>
-
-        .toggle-btn{
-            position:fixed;
-            top:90px;
-            right:20px;
-            z-index:999999;
-        }
-
-        </style>
-        """,
+        '<div class="chat-panel">',
         unsafe_allow_html=True,
     )
 
-    col1, col2 = st.columns([8, 1])
+    st.header("🤖 AI Copilot")
 
-    with col2:
+    st.divider()
 
-        if st.button("🤖 AI"):
-            st.session_state.copilot_open = (
-                not st.session_state.copilot_open
-            )
-
-    # -----------------------
-    # Chat Window
-    # -----------------------
-
-    if st.session_state.copilot_open:
-
-        st.markdown(
-            '<div class="chat-panel">',
-            unsafe_allow_html=True,
-        )
-
-        st.header("🤖 AI Copilot")
-
-        st.divider()
-
-        for msg in st.session_state.messages:
-
-            with st.chat_message(msg["role"]):
-
-                st.write(msg["content"])
+    for msg in st.session_state.messages:
+        with st.chat_message(msg["role"]):
+            st.write(msg["content"])
 
 
-        if "latest_summary" in st.session_state:
+    if "latest_summary" in st.session_state:
 
-            summary = st.session_state["latest_summary"]
-            pdf = generate_pdf(
+        summary = st.session_state["latest_summary"]
+        pdf = generate_pdf(
                 st.session_state["latest_summary"],
                 classical_optimization_results,
                 quantum_optimization_results
-            )
+        )
 
-            st.download_button(
+        st.download_button(
 
-                "📄 Download PDF Report",
+            "📄 Download PDF Report",
 
-                pdf,
+            pdf,
 
-                "Portfolio_Report.pdf",
+            "Portfolio_Report.pdf",
 
-                "application/pdf"
+            "application/pdf"
 
-            )
+        )
+    st.markdown("### 🚀 Quick Questions")
 
-        question = st.chat_input("Ask anything...")
+    col1, col2 = st.columns(2)
 
-        if question:
+    with col1:
+        if st.button("📊 Compare Classical vs Quantum", use_container_width=True):
+            st.session_state.quick_question = "Compare classical and quantum optimization."
 
-            st.session_state.messages.append(
+        if st.button("📈 Analyze Portfolio", use_container_width=True):
+            st.session_state.quick_question = "Analyze my portfolio."
+
+    with col2:
+        if st.button("⚛ Explain QAOA", use_container_width=True):
+            st.session_state.quick_question = "Explain my QAOA results."
+
+        if st.button("💡 Improve Portfolio", use_container_width=True):
+            st.session_state.quick_question = "Suggest improvements to my portfolio."
+
+    question = st.chat_input("Ask anything...")
+
+    if not question and "quick_question" in st.session_state:
+        question = st.session_state.pop("quick_question")
+
+    if question:
+        st.session_state.messages.append(
                 {
                     "role": "user",
                     "content": question
                 }
             )
-            loading_messages = [
+        loading_messages = [
                 "📈 Calculating portfolio metrics...",
                 "⚛️ Running quantum analysis...",
                 "📊 Comparing classical and quantum results...",
                 "💡 Generating AI recommendations...",
                 "🔍 Evaluating portfolio performance..."
-            ]
+        ]
 
-            with st.spinner(random.choice(loading_messages)):
-                answer = portfolio_copilot(
+        with st.spinner(random.choice(loading_messages)):
+            answer = portfolio_copilot(
                     question,
                     classical_optimization_results,
                     quantum_optimization_results
-                )
-            st.session_state["latest_summary"] = answer
-            st.session_state.messages.append(
+            )
+        st.session_state["latest_summary"] = answer
+        st.session_state.messages.append(
                 {
                     "role": "assistant",
                     "content": answer
                 }
             )
 
-            st.rerun()
+        st.rerun()
 
         st.markdown(
             "</div>",

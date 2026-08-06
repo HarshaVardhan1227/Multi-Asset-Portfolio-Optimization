@@ -1,0 +1,59 @@
+{
+    "optimal_weights": {
+        "NVDA": 8.65545865791749,
+        "MSFT": 14977.194956961674,
+        "AAPL": 0.0,
+        "META": 0.0,
+        "GOOGL": 9.800869830049674
+    },
+    "portfolio_return": 0.11194446423282021,
+    "portfolio_volatility": 0.04455089948763443,
+    "investment_values": {
+        "NVDA": 8.65545865791749,
+        "MSFT": 14977.194956961674,
+        "AAPL": 0.0,
+        "META": 0.0,
+        "GOOGL": 9.800869830049674
+    },
+    "capital": 100000,
+    "weights": {
+        "NVDA": 8.65545865791749e-05,
+        "MSFT": 0.14977194956961673,
+        "AAPL": 0.0,
+        "META": 0.0,
+        "GOOGL": 9.800869830049673e-05
+    },
+    "assets_profit": {
+        "NVDA": 3.184949122353899,
+        "MSFT": 11187.215773102522,
+        "AAPL": -0.0,
+        "META": -0.0,
+        "GOOGL": 4.045701057146204
+    },
+    "opt_selected_labels": [
+        "NVDA",
+        "MSFT",
+        "GOOGL"
+    ],
+    "bin_opt": "CPLEX",
+    "class_opt": "TRUST-CONSTR",
+    "invested_capital": 14995.651285449638,
+    "cash_remaining": 85004.34871455036,
+    "total_transaction_cost": 14.977645617310328,
+    "execution_time": 0.11873560003004968,
+    "binary_breakdown": {
+        "expected_return": 1.5277100000000001,
+        "risk_penalty": 0.19739598204715358,
+        "transaction_cost": 0.0010507563678994088,
+        "liquidity_reward": 0.06173829094036962,
+        "diversification_penalty": 0.03817766538277651,
+        "binary_objective": -1.3528238871425402
+    },
+    "continuous_breakdown": {
+        "expected_return": 0.11194446423282021,
+        "risk_penalty": 0.0009923913225786528,
+        "transaction_cost": 0.0001497764561731033,
+        "unused_cash_penalty": 0.0008500434871455036,
+        "continuous_objective": -0.10995225296692296
+    }
+}

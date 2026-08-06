@@ -2,9 +2,9 @@ from qiskit_algorithms import QAOA
 from qiskit_algorithms.optimizers import COBYLA
 from qiskit_optimization.algorithms import MinimumEigenOptimizer
 from qiskit.primitives import StatevectorSampler
-from quantum_preprocessing import build_portfolio_qubo
+from objective.quantum_preprocessing import build_portfolio_qubo
 from scipy.optimize import minimize
-from data import get_financial_data
+from data.data import get_financial_data
 import numpy as np
 import warnings
 from scipy.sparse import SparseEfficiencyWarning
@@ -13,55 +13,33 @@ import json
 from qiskit.circuit.library import QAOAAnsatz
 from qiskit.visualization import circuit_drawer
 warnings.filterwarnings("ignore", category=SparseEfficiencyWarning)
+warnings.filterwarnings(
+    "ignore",
+    message="delta_grad == 0.0"
+)
 import matplotlib.pyplot as plt
-from asset_mapping import asset_sector
-from objective_analysis import binary_objective_breakdown, quantum_continuous_breakdown
+from data.asset_mapping import asset_sector
+from objective.objective_analysis import binary_objective_breakdown, quantum_continuous_breakdown
 import psutil
 import os
 
-from quantum_setup import qaoa
+from optimization.quantum_setup import qaoa
 
 process = psutil.Process(os.getpid())
 
 
 def quantum_optimizer(qubo,qp,expected_returns,covariance_matrix,liquidity_scores,labels,daily_returns,transaction_cost_vector,corr_matrix,config):
-    print("===== START QUANTUM =====")
+
     operator, offset = qubo.to_ising()
         
     qaoa_result = qaoa.compute_minimum_eigenvalue(operator)
 
-    print(qaoa_result.eigenvalue)
-    print(qaoa_result.optimal_point)
-    print(qaoa_result.optimal_parameters)
-    print(qaoa_result.best_measurement)
-    print("Eigenvalue            :", qaoa_result.eigenvalue)
-    print("Optimal Value         :", qaoa_result.optimal_value)
-    print("Optimal Point         :", qaoa_result.optimal_point)
-    print("Optimal Parameters    :", qaoa_result.optimal_parameters)
-    print("Best Measurement      :", qaoa_result.best_measurement)
-    print("Optimizer Time        :", qaoa_result.optimizer_time)
-    print("Aux Operators         :", qaoa_result.aux_operators_evaluated)
-    print("Cost Function Evals   :", qaoa_result.cost_function_evals)
-   
-    print("QAOA")
-    print(qaoa)
-    print("=" * 40)
-    print(f"Memory BEFORE: {process.memory_info().rss / 1024**2:.2f} MB")
-    print("=" * 40)
     min_eigen=MinimumEigenOptimizer(qaoa)
-    print("Before solve")
-    
-    try:
-        print(qp.prettyprint())
-        start_time = time.perf_counter()
-        result = min_eigen.solve(qp)
 
-        print("After solve")
-    except Exception as e:
-        import traceback
+    start_time = time.perf_counter()
+    result = min_eigen.solve(qp)
 
-        print(traceback.format_exc())
-        raise
+
     binary_breakdown = binary_objective_breakdown(result.x,expected_returns,covariance_matrix,liquidity_scores,transaction_cost_vector,corr_matrix,config)
     sector_limits = {
                 "Technology": config["sector_limits"]["tech_sector_percentage"] / 100,
@@ -151,7 +129,7 @@ def quantum_optimizer(qubo,qp,expected_returns,covariance_matrix,liquidity_score
     capital=config["capital"]
     investment_per_asset = final_weights * capital
 
-    investment_per_asset_dict={ticker : invest for ticker,invest in zip(labels,investment_per_asset)}
+    investment_per_asset_dict={ticker : float(invest) for ticker,invest in zip(labels,investment_per_asset)}
     invested_fraction = np.sum(final_weights)
     cash_fraction = 1 - invested_fraction
 
@@ -163,9 +141,9 @@ def quantum_optimizer(qubo,qp,expected_returns,covariance_matrix,liquidity_score
         
     asset_profit = investment_per_asset * expected_returns
     
-    final_optimized_weights={ticker : invest for ticker,invest in zip(labels,investment_per_asset)}
+    final_optimized_weights={ticker : float(weight) for ticker,weight in zip(labels,final_weights)}
 
-    asset_profit_dict={ticker : profit for ticker,profit in zip(labels,asset_profit)}
+    asset_profit_dict={ticker : float(profit) for ticker,profit in zip(labels,asset_profit)}
     opt_selected_labels = [label for label, weight in zip(labels, final_weights) if weight > 1e-6]
     
     exp_profit=0
@@ -212,6 +190,7 @@ def quantum_optimizer(qubo,qp,expected_returns,covariance_matrix,liquidity_score
     ansatz = QAOAAnsatz(operator, reps=2)
     opt_layers=str(ansatz.reps)
     circuit_depth=str(ansatz.depth())
+
     quantum_data={
         "quantum_portfolio_return":portfolio_return,
         "quantum_portfolio_risk":portfolio_volatility,
@@ -233,19 +212,9 @@ def quantum_optimizer(qubo,qp,expected_returns,covariance_matrix,liquidity_score
         "normal_weights":final_weights_dict,
         "execution_time":float(execution_time),
         "binary_breakdown":binary_breakdown,
-        "continuous_breakdown":continuous_breakdown
+        "continuous_breakdown":continuous_breakdown,
     }
         
     with open("quantum_optimization_results.json","w") as f:
         json.dump(quantum_data,f,indent=4)
-    old_weights=np.zeros(len(final_weights))
-    transaction_cost_per_unit=0.001
-    transaction_cost=capital * transaction_cost_per_unit * np.sum(np.abs(final_weights - old_weights))
-
-    print("=" * 40)
-    print(f"Memory END: {process.memory_info().rss / 1024**2:.2f} MB")
-    print("=" * 40)
-
-    print("Capital:", capital)
-    print("Trade Amount:", trade_amount)
-    print("Transaction Cost Vector:", transaction_cost_vector)
+    

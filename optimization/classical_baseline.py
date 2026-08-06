@@ -1,14 +1,19 @@
 from scipy.optimize import minimize
 import numpy as np
-from data import get_financial_data
+from data.data import get_financial_data
 import matplotlib.pyplot as plt
 import json
-from quantum_preprocessing import build_portfolio_qubo
+from objective.quantum_preprocessing import build_portfolio_qubo
 from qiskit_optimization.algorithms import CplexOptimizer
-from asset_mapping import asset_sector
-from objective_analysis import binary_objective_breakdown
-from objective_analysis import classical_continuous_breakdown
+from data.asset_mapping import asset_sector
+from objective.objective_analysis import binary_objective_breakdown
+from objective.objective_analysis import classical_continuous_breakdown
 import time
+import warnings
+warnings.filterwarnings(
+    "ignore",
+    message="delta_grad == 0.0"
+)
 
 
 def run_classical_baseline(qubo,qp,labels,expected_returns,cov_matrix,corr_matrix,transaction_cost_vector,liquidity_scores,config):

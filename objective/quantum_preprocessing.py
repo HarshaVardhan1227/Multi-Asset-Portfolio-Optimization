@@ -1,8 +1,8 @@
-from data import get_financial_data
+from data.data import get_financial_data
 from qiskit_optimization import QuadraticProgram
 from qiskit_optimization.converters import QuadraticProgramToQubo
 import numpy as np
-from asset_mapping import asset_sector
+from data.asset_mapping import asset_sector
 
 
 def build_portfolio_qubo(expected_returns,covariance_matrix,labels,daily_returns,raw_data,liquidity_scores,transaction_cost_vector,config):
@@ -21,11 +21,8 @@ def build_portfolio_qubo(expected_returns,covariance_matrix,labels,daily_returns
     transaction_cost = config["transaction_cost"]
     liquidity_weight = config["liquidity_weight"]
     capital = config["capital"]
-    budget_constraint=config["budget_constraint"]
-    liquidity_constraint=config["liquidity_constraint"]
-    diversification_constraint=config["diversification"]
     max_assets = config["max_assets"]
-
+    diversification_weight = config["diversification_weight"]
     sector_assets = {
     "Technology": [],
     "Financial": [],
@@ -68,7 +65,7 @@ def build_portfolio_qubo(expected_returns,covariance_matrix,labels,daily_returns
     correlation_matrix = covariance_matrix / np.outer(std_dev, std_dev)
     correlation_matrix = np.nan_to_num(correlation_matrix)
 
-    lambda_div = 0.05
+    lambda_div = diversification_weight
 
     corr_penalty = np.maximum(correlation_matrix, 0)
 
