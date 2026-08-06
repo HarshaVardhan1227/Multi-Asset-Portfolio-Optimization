@@ -8,8 +8,8 @@
 
 | Name | Role | Contribution |
 | :--- | :--- | :--- |
-| **Sri Sai Harsha Vardhan Prabhamdhamkam** | Quantum Software Developer | Project Design, Mathematical Modeling, QUBO Formulation, Classical Optimization, Quantum Optimization (QAOA), Streamlit Dashboard Development, Visualization, Testing, Documentation |
-| **Jayadeep Potluri** | Documentation & Project Support | README Documentation, Repository Organization, Testing, Presentation Preparation, Result Compilation |
+| **Sri Sai Harsha Vardhan Prabhamdhamkam** | Quantum Optimization and Full Stack Development | Project Design, Mathematical Modeling, QUBO Formulation, Classical Optimization, Quantum Optimization (QAOA), Streamlit Dashboard Development, Visualization, Testing, Documentation |
+| **Jayadeep Potluri** | Project Support & Classical Optimization | Financial modeling, classical portfolio optimization, data preprocessing, documentation, testing, result compilation, and presentation preparation. |
 ---
 ### Project Overview
 
