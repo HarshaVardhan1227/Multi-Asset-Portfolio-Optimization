@@ -127,7 +127,7 @@ pip install google-genai
 After creating the virtual environment and installing all the required dependencies, launch the interactive Streamlit dashboard using the following command:
 
 ```bash
-streamlit run dashboard.py
+streamlit run app.py
 ```
 
 This command starts the user-interactive dashboard in your default web browser, where you can:
