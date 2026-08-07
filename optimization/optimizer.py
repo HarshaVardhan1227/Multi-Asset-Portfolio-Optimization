@@ -162,7 +162,7 @@ def quantum_optimizer(qubo,qp,expected_returns,covariance_matrix,liquidity_score
 
     trade_amount = np.abs(final_weights - old_weights)
 
-    transaction_cost_rate = 0.001      # 0.1%
+    transaction_cost_rate = 0.001      
 
     transaction_cost_per_asset = (
         capital

@@ -13,7 +13,6 @@ from optimization.optimizer import quantum_optimizer
 import matplotlib.pyplot as plt
 import streamlit.components.v1 as components
 from copilot.copilot import ai_copilot
-from progress_popup import show_progress
 from streamlit_javascript import st_javascript
 import seaborn as sns
 from playground.portfolio_objective import objective_playground
@@ -137,7 +136,7 @@ def portfolio_configuration():
                 with col1:
                     start_date = st.date_input(
                     "📅 Start Date",
-                    value=datetime.date(2025, 6, 1),
+                    value=datetime.date(2024, 6, 1),
                     help="Select the start date for historical market data."
                     )
                 with col2:
@@ -1773,7 +1772,7 @@ def classicalvsquantum():
             except Exception as e:
                 st.exception(e)       
 
-        # Classical
+        
         classical_weights = (
             pd.Series(weights)
             .reindex(daily_returns.columns, fill_value=0)
@@ -1890,7 +1889,7 @@ def classicalvsquantum():
                     )
             
             quantum_df = pd.DataFrame(
-                    list(portfolio_weights_dict.items()),
+                    list(investment_per_asset.items()),
                     columns=["Ticker", "Quantum"]
                     )
                 
@@ -2023,7 +2022,89 @@ def classicalvsquantum():
             )
 
             st.plotly_chart(fig, use_container_width=True)
+    with st.container():
+        st.header("🏆 Classical vs Quantum Winner")
 
+        comparison = []
+        comparison.append({
+            "Metric": "Portfolio Return",
+            "Classical": p_return,
+            "Quantum": portfolio_return,
+            "Winner": "Quantum" if portfolio_return > p_return else "Classical"
+        })
+
+        comparison.append({
+            "Metric": "Expected Profit",
+            "Classical": classical_profit,
+            "Quantum": quantum_profit,
+            "Winner": "Quantum" if quantum_profit > classical_profit else "Classical"
+        })
+
+        comparison.append({
+            "Metric": "Sharpe Ratio",
+            "Classical": classical_sharpe,
+            "Quantum": quantum_sharpe,
+            "Winner": "Quantum" if quantum_sharpe > classical_sharpe else "Classical"
+        })
+
+       
+        comparison.append({
+            "Metric": "Portfolio Risk",
+            "Classical": p_volatility,
+            "Quantum": portfolio_risk,
+            "Winner": "Quantum" if portfolio_risk < p_volatility else "Classical"
+        })
+
+        comparison.append({
+            "Metric": "VaR (95%)",
+            "Classical": classical_var,
+            "Quantum": quantum_var,
+            "Winner": "Quantum" if quantum_var < classical_var else "Classical"
+        })
+
+        comparison.append({
+            "Metric": "CVaR (95%)",
+            "Classical": classical_cvar,
+            "Quantum": quantum_cvar,
+            "Winner": "Quantum" if quantum_cvar < classical_cvar else "Classical"
+        })
+
+        comparison.append({
+            "Metric": "Transaction Cost",
+            "Classical": classical_transaction_cost,
+            "Quantum": quantum_transaction_cost,
+            "Winner": "Quantum" if quantum_transaction_cost < classical_transaction_cost else "Classical"
+        })
+
+        comparison.append({
+            "Metric": "Execution Time (s)",
+            "Classical": classical_execution_time,
+            "Quantum": quantum_execution_time,
+            "Winner": "Quantum" if quantum_execution_time < classical_execution_time else "Classical"
+        })
+
+        comparison_df = pd.DataFrame(comparison)
+
+        st.dataframe(comparison_df, use_container_width=True)
+
+        classical_score = 0
+        quantum_score = 0
+
+        for row in comparison:
+            if row["Winner"] == "Classical":
+                classical_score += 1
+            else:
+                quantum_score += 1
+
+        st.subheader("🥇 Overall Result")
+
+        if quantum_score > classical_score:
+            st.success(f"🚀 Quantum Portfolio Wins ({quantum_score} : {classical_score})")
+        elif classical_score > quantum_score:
+            st.success(f"📈 Classical Portfolio Wins ({classical_score} : {quantum_score})")
+        else:
+            st.info(f"🤝 Tie ({classical_score} : {quantum_score})")
+        
 def aicopilot():
     st.header("Welcome to MAPO Co-pilot",text_alignment="center")
     st.subheader("Ask Me Anything!....",text_alignment="center")

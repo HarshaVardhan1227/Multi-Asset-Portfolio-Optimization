@@ -59,11 +59,7 @@ def run_classical_baseline(qubo,qp,labels,expected_returns,cov_matrix,corr_matri
     selected_returns=expected_returns[selected_indices]
     selected_covariance=cov_matrix[selected_indices][:,selected_indices]
     selected_transaction_cost=transaction_cost_vector[selected_indices]
-    """
-    print(selected_indices)
-    print(selected_returns)
-    print(selected_labels)
-    """
+    
     q = config["risk_aversion"]
     eta = config["transaction_cost"]
     alpha=0.001
@@ -92,7 +88,6 @@ def run_classical_baseline(qubo,qp,labels,expected_returns,cov_matrix,corr_matri
     ] 
 
 
-
     for sector, limit in sector_limits.items():
 
         sector_indices = [
@@ -100,10 +95,7 @@ def run_classical_baseline(qubo,qp,labels,expected_returns,cov_matrix,corr_matri
             if asset_sector[ticker] == sector
         ]
 
-        # No selected assets from this sector
         if len(sector_indices) == 0:
-
-            # User requested allocation for a missing sector
             if limit > 0:
                 print(f"Warning: No selected assets from {sector}.")
             continue
@@ -174,13 +166,13 @@ def run_classical_baseline(qubo,qp,labels,expected_returns,cov_matrix,corr_matri
     
 
 
-    # Final optimized weights
+    
     weights = np.zeros(len(labels))
 
     for idx, w in zip(selected_indices, opt_result.x):
         weights[idx] = w
 
-    # Total transaction cost
+    
     transaction_cost_rate = config["transaction_cost"]
 
     total_transaction_cost = (

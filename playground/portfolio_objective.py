@@ -10,9 +10,6 @@ def objective_playground():
         """
     )
 
-    # ------------------------
-    # Portfolio Parameters
-    # ------------------------
 
     col1, col2 = st.columns(2)
 
@@ -70,10 +67,6 @@ def objective_playground():
             "Diversification Weight (γ)",
             0.0, 2.0, 0.10, 0.01
         )
-
-    # ------------------------
-    # Objective Function
-    # ------------------------
 
     objective = (
         expected_return

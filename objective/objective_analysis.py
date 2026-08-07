@@ -71,26 +71,23 @@ def classical_continuous_breakdown(weights,expected_returns,covariance_matrix,tr
     eta = config["transaction_cost"]
     alpha = 0.001
 
-    # Return
     portfolio_return = np.dot(weights, expected_returns)
 
-    # Variance
     portfolio_variance = (
         weights.T
         @ covariance_matrix
         @ weights
     )
 
-    # Transaction Cost
+
     transaction_cost = np.sum(
         transaction_cost_vector *
         np.abs(weights - previous_weights)
     )
 
-    # Cash Penalty
+
     unused_cash = 1 - np.sum(weights)
 
-    # Final Objective
     objective = (
         q * portfolio_variance
         - portfolio_return
@@ -111,13 +108,12 @@ def quantum_continuous_breakdown(weights,expected_returns,covariance_matrix,tran
     eta=config["transaction_cost"]
     alpha=0.001
 
-    # Return
+
     portfolio_return = np.dot(
         weights,
         expected_returns
     )
 
-    # Variance
     portfolio_variance = (
         weights.T
         @ covariance_matrix
