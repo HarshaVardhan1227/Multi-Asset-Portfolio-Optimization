@@ -6,10 +6,10 @@
 ---
 ### Team Members and Contributions
 
-| Name | Role | Contribution |
-| :--- | :--- | :--- |
-| **Sri Sai Harsha Vardhan Prabhamdhamkam** | Quantum Optimization and Full Stack Development | Project Design, Mathematical Modeling, QUBO Formulation, Classical Optimization, Quantum Optimization (QAOA), Streamlit Dashboard Development, Visualization, Testing, Documentation |
-| **Jayadeep Potluri** | Project Support & Classical Optimization | Financial modeling, classical portfolio optimization, data preprocessing, documentation, testing, result compilation, and presentation preparation. |
+| Name | Email | Role | Contribution |
+| :--- | :--- | :--- | :--- |
+| **Sri Sai Harsha Vardhan Prabhamdhamkam** | harshaworkspace1227@gmail.com | Quantum Optimization and Full Stack Development | Project Design, Mathematical Modeling, QUBO Formulation, Classical Optimization, Quantum Optimization (QAOA), Streamlit Dashboard Development, Visualization, Testing, and Documentation. |
+| **Jayadeep Potluri** | jayadeeppotluri@gmail.com | Project Support & Classical Optimization | Financial modeling, classical portfolio optimization, data preprocessing, documentation, testing, result compilation, and presentation preparation. |
 ---
 ### Project Overview
 
