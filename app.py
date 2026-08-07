@@ -136,7 +136,7 @@ def portfolio_configuration():
                 with col1:
                     start_date = st.date_input(
                     "📅 Start Date",
-                    value=datetime.date(2024, 6, 1),
+                    value=datetime.date(2025, 6, 1),
                     help="Select the start date for historical market data."
                     )
                 with col2:
