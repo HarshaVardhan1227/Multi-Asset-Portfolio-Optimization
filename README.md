@@ -13,11 +13,10 @@
 ---
 ### Project Overview
 
-Portfolio optimization is one of the most important problems in quantitative finance. Investors seek portfolios that maximize expected returns while minimizing investment risk while satisfying practical investment constraints.
+## Overview
 
-Traditional optimization techniques become increasingly computationally expensive as the number of assets and constraints increases. This project explores a hybrid classical-quantum optimization framework where the portfolio optimization problem is transformed into a Quadratic Unconstrained Binary Optimization (QUBO) problem and solved using the Quantum Approximate Optimization Algorithm (QAOA).
+Portfolio optimization aims to maximize returns while minimizing risk under practical investment constraints. This project presents a **hybrid classical-quantum portfolio optimization framework** in which the portfolio optimization problem is formulated as a **Quadratic Unconstrained Binary Optimization (QUBO)** model. The QUBO is solved using both a **classical optimizer** and the **Quantum Approximate Optimization Algorithm (QAOA)** for asset selection, followed by classical continuous weight optimization. The framework enables a direct comparison between classical and quantum approaches while generating efficient, diversified, and risk-aware investment portfolios.
 
-The project demonstrates how quantum optimization techniques can assist financial decision-making while maintaining explainability and realistic investment constraints.
 
 ---
 ### Problem Description
