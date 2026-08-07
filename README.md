@@ -6,52 +6,58 @@
 ---
 ### Team Members and Contributions
 
-| Name | Role | Contribution |
-| :--- | :--- | :--- |
-| **Sri Sai Harsha Vardhan Prabhamdhamkam** | Quantum Optimization and Full Stack Development | Project Design, Mathematical Modeling, QUBO Formulation, Classical Optimization, Quantum Optimization (QAOA), Streamlit Dashboard Development, Visualization, Testing, Documentation |
-| **Jayadeep Potluri** | Project Support & Classical Optimization | Financial modeling, classical portfolio optimization, data preprocessing, documentation, testing, result compilation, and presentation preparation. |
+| Name | Email | Role | Contribution |
+| :--- | :--- | :--- | :--- |
+| **Sri Sai Harsha Vardhan Prabhamdhamkam** | harshaworkspace1227@gmail.com | Quantum Optimization and Full Stack Development | Project Design, Mathematical Modeling, QUBO Formulation, Classical Optimization, Quantum Optimization (QAOA), Streamlit Dashboard Development, Visualization, Testing, and Documentation. |
+| **Jayadeep Potluri** | jayadeeppotluri@gmail.com | Project Support & Classical Optimization | Financial modeling, classical portfolio optimization, data preprocessing, documentation, testing, result compilation, and presentation preparation. |
 ---
 ### Project Overview
 
-Portfolio optimization is one of the most important problems in quantitative finance. Investors seek portfolios that maximize expected returns while minimizing investment risk while satisfying practical investment constraints.
+Portfolio optimization aims to maximize returns while minimizing risk under practical investment constraints. This project presents a **hybrid classical-quantum portfolio optimization framework** in which the portfolio optimization problem is formulated as a **Quadratic Unconstrained Binary Optimization (QUBO)** model. The QUBO is solved using both a **classical optimizer** and the **Quantum Approximate Optimization Algorithm (QAOA)** for asset selection, followed by classical continuous weight optimization. The framework enables a direct comparison between classical and quantum approaches while generating efficient, diversified, and risk-aware investment portfolios.
 
-Traditional optimization techniques become increasingly computationally expensive as the number of assets and constraints increases. This project explores a hybrid classical-quantum optimization framework where the portfolio optimization problem is transformed into a Quadratic Unconstrained Binary Optimization (QUBO) problem and solved using the Quantum Approximate Optimization Algorithm (QAOA).
 
-The project demonstrates how quantum optimization techniques can assist financial decision-making while maintaining explainability and realistic investment constraints.
+---
+### Problem Description
+
+Multi-asset portfolio construction is a fundamental problem in quantitative finance that seeks to allocate capital across diverse asset classes (including equities, fixed income, commodities, currencies, and alternative investments) to maximize expected returns while managing risk and satisfying investment constraints. As the number of assets and portfolio constraints increases, the optimization problem becomes increasingly complex, particularly when accounting for realistic factors such as transaction costs, diversification requirements, sector exposure limits, liquidity constraints, and regulatory policies.
+The challenge is to optimize a model portfolio using quantum computing across asset classes while honoring goals, guardrails, and implementation cost.
 
 ---
 ### Problem Statement
-
-The objective is to construct an optimal investment portfolio by selecting assets and allocating capital while satisfying practical financial constraints.
-
-The optimization simultaneously considers:
-
-Maximizing Expected Return
-Minimizing Portfolio Risk
-Minimizing Transaction Costs
-Improving Portfolio Liquidity
-Encouraging Diversification
-Enforcing Budget Constraints
-Applying Sector Allocation Limits
-Limiting Maximum Number of Assets
-
-The optimization problem is formulated as a Quadratic Unconstrained Binary Optimization (QUBO) model and solved using QAOA.
+Source : WISER Vanguard Quantum Challenge 2026<br>
+Multi-Asset Portfolio Construction<br>
+● Given return assumptions, risk estimates, cost estimates, and portfolio
+constraints, recommend an allocation that improves expected utility while
+staying inside predefined investment guardrails.<br>
+● An example optimization workflow is:<br>
+● Inputs (Forecast + Investment Goals) → Optimization Solver (Constraints + Objective Function) → Outputs (Optimal Asset Allocation +Investment Rationale)
 
 ---
 
 ### Project Objectives
 
-* Build a classical Markowitz Portfolio Optimizer<br>
-* Formulate portfolio optimization as a QUBO problem<br>
-* Solve the QUBO using QAOA<br>
-* Compare Classical and Quantum solutions<br>
-* Build an interactive portfolio dashboard<br>
-* Demonstrate explainable investment decisions<br>
+* Clearly define the mathematical formulation of the problem statement, focusing on binary decision variables, linear constraints, and the quadratic objectives.
+* Derive the optimization problem (cost function) to a formulation that is compatible with a quantum optimization algorithm. 
+* Use synthetic or anonymized asset-class data: return, volatility, correlation, cost.
+* Build baseline mean-variance optimizer, then add constraints and scenario penalties.
+* Expose tunable goals: growth, income, drawdown control, cost sensitivity.
+* Compare outputs by risk, expected return, turnover, guardrail, breaches, and explainability. 
+* Validate your solution using a classical optimization routine.
+* Teams should walk through their approach in a well drafted presentation and demonstrate their prototype working. This is your opportunity to showcase your thinking, creativity, and results in an interactive format.
+* Demonstrate a portfolio co-pilot that shows the recommended allocation, the trade-offs versus baseline, and why the solution satisfies constraints.
+* The solution with the best risk-adjusted outcome with zero hard-constraint breaches will be scored the highest.
+
 
 ---
 
 ### Why We Proposed this Solution
-We proposed a hybrid classical-quantum solution because real-world portfolio optimization involves multiple objectives and constraints that become computationally challenging as the number of assets increases. By combining Markowitz optimization for weight allocation with QUBO-based QAOA for asset selection, our approach leverages the strengths of both classical and quantum computing to build diversified, risk-aware, and efficient investment portfolios.
+Financial portfolio optimization is fundamentally a high-dimensional combinatorial optimization problem. As the number of assets, investment constraints, and market factors increase, identifying an optimal portfolio becomes computationally demanding using conventional optimization techniques alone. Modern investment decisions must simultaneously maximize expected returns while minimizing risk, transaction costs, and liquidity constraints, all under practical investment and diversification requirements.
+
+To address this challenge, we propose a hybrid classical-quantum portfolio optimization framework that combines the strengths of both computational paradigms. The classical component leverages Modern Portfolio Theory (Markowitz Optimization) and continuous optimization techniques to determine the optimal capital allocation across selected assets. In parallel, the quantum component formulates the portfolio selection problem as a Quadratic Unconstrained Binary Optimization (QUBO) model and solves it using the Quantum Approximate Optimization Algorithm (QAOA), enabling efficient exploration of the exponentially large asset-selection search space.
+
+This hybrid strategy capitalizes on the maturity and numerical precision of classical optimization while exploiting the emerging capabilities of quantum algorithms for combinatorial decision-making. The framework produces diversified, risk-aware, and practically feasible portfolios by jointly considering expected returns, portfolio volatility, transaction costs, liquidity, diversification objectives, sector allocation constraints, and investment budget limitations.
+
+Beyond achieving competitive portfolio performance, this work demonstrates how quantum computing can be integrated with established financial optimization methods to build scalable decision-support systems for next-generation investment management. As quantum hardware continues to evolve, such hybrid approaches provide a practical pathway toward solving increasingly complex financial optimization problems that challenge traditional computational methods.
 
 ---
 ### Methods and tools
@@ -94,6 +100,11 @@ We proposed a hybrid classical-quantum solution because real-world portfolio opt
 
 Before running this project, it is recommended to create and activate a Python virtual environment (`venv`) to isolate project dependencies and avoid conflicts with other Python packages.
 
+### Clone the Repo
+```bash
+gh repo clone HarshaVardhan1227/Multi-Asset-Portfolio-Optimization
+```
+---
 ### Create a Virtual Environment
 
 **Windows**
@@ -105,20 +116,7 @@ venv\Scripts\activate
 ### Install Required Packages
 
 ```bash
-pip install numpy
-pip install pandas
-pip install scipy
-pip install matplotlib
-pip install plotly
-pip install yfinance
-pip install pandas-datareader
-pip install streamlit
-pip install qiskit
-pip install qiskit-optimization
-pip install qiskit-algorithms
-pip install qiskit-ibm-runtime
-pip install cplex
-pip install google-genai
+pip install streamlit pandas numpy plotly matplotlib seaborn scipy qiskit qiskit-algorithms qiskit-optimization qiskit-aer yfinance Pillow streamlit-javascript reportlab openai google-genai psutil cplex
 ```
 ---
 ### User Interactive Dashboard
@@ -200,4 +198,24 @@ This command starts the user-interactive dashboard in your default web browser, 
 Construction. (Project challenge document provided as part of the WISER Quantum
 Challenge.)
 ---
+### Required Code, Files, and Reporting Materials
 
+| File / Folder | Description |
+|---------------|-------------|
+| `app.py` | Main Streamlit application that integrates all modules and provides the interactive dashboard. |
+| `data/data.py` | Retrieves historical market data, processes asset prices, and computes financial metrics such as expected returns, covariance, correlation, and volatility. |
+| `optimization/classical_baseline.py` | Performs classical portfolio optimization using the Markowitz Mean-Variance model and the SLSQP optimizer. |
+| `optimization/quantum_preprocessing.py` | Builds the portfolio optimization model, formulates the QUBO problem, and converts it into an Ising Hamiltonian. |
+| `optimization/optimizer.py` | Executes the QAOA algorithm to perform quantum asset selection and optimize the portfolio. |
+| `data/asset_mapping.py` | Defines sector mappings, liquidity scores, transaction costs, and asset metadata used in optimization. |
+| `app.py` | Generates market analysis visualizations including expected returns, covariance, correlation, efficient frontier, and cumulative returns. |
+| `playground/portfolio_objective.py` | Provides an interactive environment for adjusting optimization parameters and computing the live objective function. |
+| `copilot/copilot.py` | Implements the AI Portfolio Co-Pilot for portfolio insights, recommendations, and summary generation. |
+| `Results/` | Contains dashboard screenshots, comparison charts, performance visualizations, and supporting outputs. |
+| `README.md` | Provides complete project documentation, setup instructions, methodology, results, and references. |
+
+---
+### Scalability
+The current implementation is designed to optimize portfolios containing 5 to 6 assets, requiring 5 to 6 qubits, with each qubit representing the binary selection state of one asset. The QAOA algorithm efficiently explores different asset combinations in quantum superposition, while the classical SLSQP optimizer computes the optimal investment weights for the selected assets.
+
+Although the present implementation targets 5-6 qubits, the hybrid framework is inherently scalable. As quantum hardware evolves with higher qubit counts, improved fidelity, and better error correction, the same QUBO-based optimization pipeline can be extended to support larger portfolios and more sophisticated investment constraints without changing the overall system architecture.
