@@ -96,8 +96,8 @@ Before running this project, it is recommended to create and activate a Python v
 
 ### Clone the Repo
 ```bash
-git clone https://github.com/yourusername/multi-asset-portfolio-optimization.git
-cd multi-asset-portfolio-optimization
+[git clone https://github.com/yourusername/multi-asset-portfolio-optimization.git
+cd multi-asset-portfolio-optimization](https://github.com/HarshaVardhan1227/Multi-Asset-Portfolio-Optimization.git)
 ```
 ---
 ### Create a Virtual Environment
