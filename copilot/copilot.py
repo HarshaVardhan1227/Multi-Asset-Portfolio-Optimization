@@ -414,27 +414,8 @@ def generate_pdf(summary, classical_results, quantum_results):
     return pdf
 
 def portfolio_copilot(question,classical_optimization_results,quantum_optimization_results):
-    """
-    AI Portfolio Chatbot
-
-    Parameters
-    ----------
-    question : str
-        User's question.
-
-    classical_results : dict
-        Classical optimizer output.
-
-    quantum_results : dict
-        Quantum optimizer output.
-
-    Returns
-    -------
-    str
-        AI-generated answer.
-    """
-
-    system_prompt =""" 
+    
+    system_prompt = """
     You are an AI Financial Portfolio Assistant.
 
     Your responsibilities:
@@ -443,6 +424,7 @@ def portfolio_copilot(question,classical_optimization_results,quantum_optimizati
     - Never estimate missing information.
     - If information is unavailable, explicitly state "Not Available".
     - Use only the supplied portfolio dictionaries.
+    - Provide explainable insights based only on the supplied optimization results.
 
     Formatting Rules:
 
@@ -497,6 +479,14 @@ def portfolio_copilot(question,classical_optimization_results,quantum_optimizati
     4.
     5.
 
+    Explainability
+
+    1. Explain why the Classical optimizer selected its portfolio using the provided objective values and dictionary keys.
+    2. Explain why the Quantum optimizer selected its portfolio using the provided objective values and dictionary keys.
+    3. Describe how portfolio_return, portfolio_volatility, total_transaction_cost, liquidity, diversification, and cash_remaining influenced the final portfolios.
+    4. Explain any trade-offs between return, risk, diversification, and transaction cost observed in the results.
+    5. Do not speculate or infer information that is not present in the supplied dictionaries.
+
     Key Insights
 
     1.
@@ -526,6 +516,8 @@ def portfolio_copilot(question,classical_optimization_results,quantum_optimizati
     - Use only numbered lists.
     - Do not repeat the same information.
     - Keep the report professional and suitable for direct insertion into a PDF.
+    - Base every explanation strictly on the supplied dictionaries.
+    - If a metric or objective component is unavailable, state "Not Available".
     """
 
     user_prompt = f"""
