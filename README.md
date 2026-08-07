@@ -94,6 +94,12 @@ We proposed a hybrid classical-quantum solution because real-world portfolio opt
 
 Before running this project, it is recommended to create and activate a Python virtual environment (`venv`) to isolate project dependencies and avoid conflicts with other Python packages.
 
+### Clone the Repo
+```bash
+git clone https://github.com/yourusername/multi-asset-portfolio-optimization.git
+cd multi-asset-portfolio-optimization
+```
+---
 ### Create a Virtual Environment
 
 **Windows**
@@ -105,20 +111,7 @@ venv\Scripts\activate
 ### Install Required Packages
 
 ```bash
-pip install numpy
-pip install pandas
-pip install scipy
-pip install matplotlib
-pip install plotly
-pip install yfinance
-pip install pandas-datareader
-pip install streamlit
-pip install qiskit
-pip install qiskit-optimization
-pip install qiskit-algorithms
-pip install qiskit-ibm-runtime
-pip install cplex
-pip install google-genai
+pip install streamlit pandas numpy plotly matplotlib seaborn scipy qiskit qiskit-algorithms qiskit-optimization qiskit-aer yfinance Pillow streamlit-javascript reportlab openai google-genai psutil cplex
 ```
 ---
 ### User Interactive Dashboard
